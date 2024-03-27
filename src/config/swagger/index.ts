@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
 
 dotenv.config();
-const PORT = process.env.API_PORT;
-const urlAPI = `http://localhost:${PORT}`;
+// const PORT = process.env.API_PORT;
+// const urlAPI = `http://localhost:${PORT}`;
 
-const PORT_DOCKER = process.env.PORT_DOCKER;
-const urlDOCKER = `http://localhost:${PORT_DOCKER}`;
+// const PORT_DOCKER = process.env.PORT_DOCKER;
+// const urlDOCKER = `http://localhost:${PORT_DOCKER}`;
 
 
 export const swaggerDefinition = {
@@ -25,14 +25,14 @@ export const swaggerDefinition = {
       },
     },
     servers: [
-      {
-        url: urlAPI,
-        description: 'Development server',
-      },
-      {
-        url: urlDOCKER,
-        description: 'Development server in the docker',
-      },
+      // {
+      //   url: urlAPI,
+      //   description: 'Development server',
+      // },
+      // {
+      //   url: urlDOCKER,
+      //   description: 'Development server in the docker',
+      // },
     ],
   };
 
