@@ -1,0 +1,78 @@
+stages:
+- code:quality_test
+- image:build
+- image:security_test
+- k8s:deploy
+
+variables:
+  CONTAINER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+
+default:
+  tags: ['agu']
+
+include:
+- project: 'k8s/ci-cd'
+  file:
+  - 'pipeline-templates/pipeline.yml'
+
+######################
+# Code Analisys Step #
+######################
+code_analisys:
+  stage: code:quality_test
+  environment:
+    name: $CI_COMMIT_BRANCH
+  variables:
+    APP_FOLDER: src
+  extends: .code-nodejs:analisys
+  rules:
+  - if: $CI_COMMIT_BRANCH == 'dev'
+
+###############
+# Build Step  #
+###############
+image_build:
+  stage: image:build
+  environment:
+    name: $CI_COMMIT_BRANCH
+  extends: .image:build
+  variables:
+    CONTEXT_DIR: ${CI_PROJECT_DIR}
+  before_script:
+  - cat $_ENV > .env
+  rules:
+  - if: $CI_COMMIT_BRANCH == 'dev'
+  - if: $CI_COMMIT_BRANCH == 'hom'
+  - if: $CI_COMMIT_BRANCH == 'main'
+
+######################
+# Image Secure Steps #
+######################
+image_secure_test:
+  stage: image:security_test
+  environment:
+    name: $CI_COMMIT_BRANCH
+  needs:
+  - image_build
+  extends: .image_sec_test
+  rules:
+  - if: $CI_COMMIT_BRANCH == 'dev'
+  - if: $CI_COMMIT_BRANCH == 'hom'
+  - if: $CI_COMMIT_BRANCH == 'main'
+
+#################
+## Deploy Steps #
+#################
+k8s_deploy:
+  stage: k8s:deploy
+  environment:
+    name: $CI_COMMIT_BRANCH
+  needs:
+  - image_secure_test
+  extends: .deploy
+  rules:
+  - if: $CI_COMMIT_BRANCH == 'dev'
+  - if: $CI_COMMIT_BRANCH == 'hom'
+  - if: $CI_COMMIT_BRANCH == 'main'
+    when: manual
+

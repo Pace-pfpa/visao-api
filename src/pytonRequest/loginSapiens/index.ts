@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 export async function LoginSapiens(login: ILoginDTO): Promise<string> {
     dotenv.config();
-    const CMD_Python = process.env.CMD_Python;
+    // const CMD_Python = process.env.CMD_Python;
     // const requestLoginSapiens = new RequestLoginSapiens(login);
     // const result = await  requestLoginSapiens.handle()
     // console.log("", result)
@@ -13,7 +13,7 @@ export async function LoginSapiens(login: ILoginDTO): Promise<string> {
     const { spawn } = require('child_process');
 
     // const childPython = spawn("python", ["--version"])
-    const childPython = spawn(CMD_Python, ["./python/loginPython.py", login.cpf, login.senha])
+    const childPython = spawn('python3', ["./python/loginPython.py", login.cpf, login.senha])
     let dataPython;
     return new Promise(function (resolve, reject) {
         childPython.stdout.on("data", (data) => {
