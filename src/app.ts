@@ -18,6 +18,9 @@ app.use(cors());
 
 
 app.use(helmet.frameguard({ action: 'deny' }));
+app.use(helmet({
+    crossOriginEmbedderPolicy: false,
+}))
 
 
 
