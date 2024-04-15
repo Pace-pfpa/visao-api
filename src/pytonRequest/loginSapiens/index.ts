@@ -13,7 +13,7 @@ export async function LoginSapiens(login: ILoginDTO): Promise<string> {
     const { spawn } = require('child_process');
 
     // const childPython = spawn("python", ["--version"])
-    const childPython = spawn('python3', ["./python/loginPython.py", login.cpf, login.senha])
+    const childPython = spawn('python', ["./python/loginPython.py", login.cpf, login.senha])
     let dataPython;
     return new Promise(function (resolve, reject) {
         childPython.stdout.on("data", (data) => {
