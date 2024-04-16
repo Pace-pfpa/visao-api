@@ -3,15 +3,10 @@ import {LoginSapiens} from '../../pytonRequest/loginSapiens'
 
 export class LoginUseCase {
     async execute(data: ILoginDTO): Promise<string> {
-        console.log("login inicializado")
-        try{
-            const user =  await LoginSapiens(data);
-            console.log(user)
-            return user
-        }catch(e){
-            console.log("ENTROU NO ERRO")
-            console.log(e)
-        }
+        const loginIsTrue = await LoginSapiens(data)
+            const verifyBoolean = loginIsTrue.split("(")[1].split(",")[0].trim();
+            if(verifyBoolean == "False") throw new Error()
+            return await loginIsTrue.split("(")[1].split("'")[1];
         
     }
 }

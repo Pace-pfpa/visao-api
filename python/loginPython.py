@@ -87,5 +87,5 @@ if __name__ == '__main__':
     acesso = Access_sapiens(cpf=cpf,senha=senha)
     tuple_cookie = acesso.cookie
     #tuple_cookie = str(sys.argv[1])
-    print(tuple_cookie[1])
+    print(tuple_cookie)
    
