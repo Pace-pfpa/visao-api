@@ -75,7 +75,7 @@ export class InsertSapiensMinutasUseCase {
                     let nome = await processo.split(" ");
                     const upload = await uploadDocumentUseCase.execute(cookie, `${nome[0]}${documento_id}MemoriaCalculo.html`, processoAfazer.conteudo, documento_id, tipo_documento);
                     await response.push({ createDocument: createDocument[0], upload });
-                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: "MEMORIA ANEXADA", tarefaId: parseInt(tarefa_id) }));
+                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `MEMORIA ANEXADA - ${tarefas[i].postIt}`, tarefaId: parseInt(tarefa_id) }));
                     tidNumber++;
                 }
 
