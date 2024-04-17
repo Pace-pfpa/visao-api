@@ -11,7 +11,6 @@ export class GetTarefaNupUseCase {
         
         
         const response = (await RequestSapiens(data.cookie, getTarefa))
-
         return response;
     }
 }

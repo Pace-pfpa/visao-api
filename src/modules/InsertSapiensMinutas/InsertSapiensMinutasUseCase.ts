@@ -23,7 +23,7 @@ export class InsertSapiensMinutasUseCase {
         let response: Array<any> = [];
         for(let k= 0; k<data.minutas.length; k++){
             const tarefas = await getTarefaUseCaseNup.execute({ cookie, usuario_id, nup: data.minutas[k].nup})
-            console.log(data.minutas.length)
+            
 
 
             for (var i = 0; i < tarefas.length; i++) {
@@ -76,6 +76,7 @@ export class InsertSapiensMinutasUseCase {
                     const upload = await uploadDocumentUseCase.execute(cookie, `${nome[0]}${documento_id}MemoriaCalculo.html`, processoAfazer.conteudo, documento_id, tipo_documento);
                     await response.push({ createDocument: createDocument[0], upload });
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `MEMORIA ANEXADA - ${tarefas[i].postIt}`, tarefaId: parseInt(tarefa_id) }));
+                    console.log(tarefas[i])
                     tidNumber++;
                 }
 

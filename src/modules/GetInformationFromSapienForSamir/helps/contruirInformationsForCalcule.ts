@@ -1,10 +1,15 @@
+import { json } from "express";
 import { IBeneficiosAcumuladoForCalculeDTO } from "../../../DTO/BeneficiosAcumuladoForCalcule";
 import { IBeneficiosDTO } from "../../../DTO/BeneficiosDTO";
 import { IInformationsForCalculeDTO } from "../../../DTO/InformationsForCalcule";
+import { convertToDate } from "./createFormatDate";
+
+let beneficioPrincipal: any;
 
 export async function fazerInformationsForCalculeDTO(beneficios: IBeneficiosDTO[], numeroDoProcesso: string, dataAjuizamento: string, nome: string, cpf: string, urlProcesso: string, citacao: string, id: number): Promise<IInformationsForCalculeDTO> {
     var result: IInformationsForCalculeDTO = { beneficio: "", dibAnterior: "", beneficioAcumuladoBoolean: false, dibInicial: "", dip: "", id: id, nb: "", rmi: "", tipo: "", numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao };
     result = await preencherBeneficioPrincipal(result, beneficios[0])
+    beneficioPrincipal = result;
     for (let beneficio of beneficios) {
         if(beneficio.nb == result.nb){
             continue
@@ -13,6 +18,7 @@ export async function fazerInformationsForCalculeDTO(beneficios: IBeneficiosDTO[
         const beneficiosComMesmoTipo_Porem__BeneficosPesquisadoTem_Dib_Diferente_DIP = result.tipo == beneficio.tipo && beneficio.dip != beneficio.dib
         if(beneficioPrincipalNaoEAtivo_Mas_BeneficioPesquisadoSim || beneficiosComMesmoTipo_Porem__BeneficosPesquisadoTem_Dib_Diferente_DIP){
             result = preencherBeneficioPrincipal(result, beneficio);
+            beneficioPrincipal = result;
         }
     }
     beneficios = beneficios.filter(beneficios =>beneficios.nb != result.nb)
@@ -36,7 +42,11 @@ function preencherBeneficioPrincipal(result: IInformationsForCalculeDTO, benefic
 async function converterArrayDeBenefiosParaArrayDeBeneficiosAcumulados(beneficios: IBeneficiosDTO[]): Promise<IBeneficiosAcumuladoForCalculeDTO[]>{
     var beneficiosAcumulados: IBeneficiosAcumuladoForCalculeDTO[] = [];
     for(let beneficio of beneficios){
-        beneficiosAcumulados.push({ beneficio: beneficio.beneficio, dcb: beneficio.dcb, dib: beneficio.dib, rmi: beneficio.rmi, nb: beneficio.nb })
+        if(convertToDate(beneficioPrincipal.dibInicial) <= convertToDate(beneficio.dib) && convertToDate(beneficioPrincipal.dip) >= convertToDate(beneficio.dib) || 
+        convertToDate(beneficioPrincipal.dibInicial) >= convertToDate(beneficio.dib) &&  convertToDate(beneficioPrincipal.dip) >= convertToDate(beneficio.dcb) && convertToDate(beneficio.dcb) >= convertToDate(beneficioPrincipal.dibInicial)){
+            beneficiosAcumulados.push({ beneficio: beneficio.beneficio, dcb: beneficio.dcb, dib: beneficio.dib, rmi: beneficio.rmi, nb: beneficio.nb, dibAnterior: beneficio.dibAnterior })
+        }
+        
     }
     return await beneficiosAcumulados;
 }

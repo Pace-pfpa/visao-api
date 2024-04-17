@@ -35,7 +35,10 @@ export class VerificadorValidadeDossiePrevidenciarioUseCase {
             var tarefas: any[]
             do {
                 tarefas = await getTarefaUseCase.execute({ cookie, usuario_id, etiqueta: data.etiqueta, qunatidadeDeProcesso })
+                let contadorFor = 0
                 for (const tarefa of tarefas) {
+                    const etiquetaParaConcatenar = tarefas[contadorFor].postIt
+
                     const tarefaId = tarefa.id;
                     const objectGetArvoreDocumento: IGetArvoreDocumentoDTO = { nup: tarefa.pasta.NUP, chave: tarefa.pasta.chaveAcesso, cookie, tarefa_id: tarefa.id }
                     let arrayDeDocumentos: ResponseArvoreDeDocumento[];
@@ -44,7 +47,7 @@ export class VerificadorValidadeDossiePrevidenciarioUseCase {
                         arrayDeDocumentos = (await getArvoreDocumentoUseCase.execute(objectGetArvoreDocumento)).reverse();
                     } catch (error) {
                         console.log(error);
-                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: "DOSPREV COM FALHA NA GERAÇAO", tarefaId }));
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA GERAÇAO - ${etiquetaParaConcatenar}`, tarefaId }));
                         continue
                     }
 
@@ -57,7 +60,7 @@ export class VerificadorValidadeDossiePrevidenciarioUseCase {
                         objectDosPrevNaoExisti = objectDosPrev == null;
                         if (objectDosPrevNaoExisti) {
                             console.log("DOSPREV NÃO ECONTRADO");
-                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: "DOSPREV NÃO ECONTRADO", tarefaId }))
+                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV NÃO ECONTRADO - ${etiquetaParaConcatenar}`, tarefaId }))
                             continue;
                         }
                     }
@@ -65,7 +68,7 @@ export class VerificadorValidadeDossiePrevidenciarioUseCase {
                     const dosPrevSemIdParaPesquisa = (objectDosPrev.documentoJuntado.componentesDigitais.length) <= 0;
                     if (dosPrevSemIdParaPesquisa) {
                         console.log("DOSPREV COM FALHA NA PESQUISA");
-                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: "DOSPREV COM FALHA NA PESQUISA", tarefaId }))
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                         continue;
                     }
                     const idDosprevParaPesquisa = objectDosPrev.documentoJuntado.componentesDigitais[0].id;
@@ -80,19 +83,20 @@ export class VerificadorValidadeDossiePrevidenciarioUseCase {
                     const informacaoDeCabeçalhoNaoExiste = !informacaoDeCabeçalho;
                     if (informacaoDeCabeçalhoNaoExiste) {
                         console.log("DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE");
-                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: "DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE", tarefaId }))
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                         continue
                     }
                     // ative quando for para produçao
                     const diasParaInpirarDossie =  VerificaçaoDaQuantidadeDeDiasParaInspirarODossie(informacaoDeCabeçalho);
                     if (0 > diasParaInpirarDossie) {
                         console.log("DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE");
-                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: "DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE", tarefaId }))
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                         continue
                     }
                     response.push("DOSPREV VALIDADO")
                     console.log("DOSPREV VALIDADO");
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: ("DOSPREV VALIDADO POR " + diasParaInpirarDossie +" DIAS"), tarefaId }))
+                    contadorFor = contadorFor + 1
                 }
             } while (tarefas.length >= qunatidadeDeProcesso);
 

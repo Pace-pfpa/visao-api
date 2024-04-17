@@ -19,18 +19,34 @@ import { coletarArvoreDeDocumentoDoPassivo } from './helps/coletarArvoreDeDocume
 import { isValidInformationsForCalculeDTO } from './helps/validadorDeInformationsForCalculeDTO';
 import { getCapaDoPassivaUseCase } from '../GetCapaDoPassiva';
 import { getTarefaUseCaseNup } from '../GetTarefaNup';
+import { ErrogetArvoreDocumentoUseCase } from '../GetArvoreDocumentoErroProcesso';
+import { verificarCapaTrue } from './helps/verificarCapaTrue';
+import { buscarTableCpf } from './helps/procurarTableCpf';
+import { superDossie } from './DossieSuperSapiens';
+import { MinhaErroPersonalizado } from './helps/ErrorMensage';
+import { json } from 'express';
+import { coletarDateInCertidao } from './helps/coletarCitacaoInCertidao';
+import { verificarAbreviacaoCapa } from './helps/verificarAbreviacaoCapa';
+import { coletarCitacaoTjac } from './GetCitacao/coletarCitacaoTjac';
+import { deletePDF } from '../GetPdfSapiens/deletePdf';
+import { coletarCitacaoTjam } from './GetCitacao/coletarCitacaoTjam';
+import jwt from 'jsonwebtoken'
+import { id } from 'date-fns/locale';
+import { verificationPdfExist } from './helps/verificationPdfExist';
 
 
 export class GetInformationFromSapienForSamirUseCase {
 
     async execute(data: IGetInformationsFromSapiensDTO): Promise<any> {
-        
+        console.log("SADSADAS " + JSON.stringify(data))
         const cookie = await loginUseCase.execute(data.login);
+        console.log("Login " + cookie)
         const usuario = (await getUsuarioUseCase.execute(cookie));
-
+        const userIdControlerPdf = (jwt.decode(data.usuario_id).id)
+        console.log(userIdControlerPdf)
         const usuario_id = `${usuario[0].id}`;
         let novaCapa: any = false;
-
+        var objectDosPrev
         let response: Array<IInformationsForCalculeDTO> = [];
         try {
             const tarefas = await getTarefaUseCase.execute({ cookie, usuario_id, etiqueta: data.etiqueta });
@@ -38,6 +54,7 @@ export class GetInformationFromSapienForSamirUseCase {
             
             for (var i = 0; i <= tarefas.length - 1; i++) {
                 console.log("Qantidade faltando triar", (tarefas.length - i));
+                let superDosprevExist = false;
                 const tarefaId = tarefas[i].id;
                 const etiquetaParaConcatenar = tarefas[i].postIt
                 const objectGetArvoreDocumento: IGetArvoreDocumentoDTO = { nup: tarefas[i].pasta.NUP, chave: tarefas[i].pasta.chaveAcesso, cookie, tarefa_id: tarefas[i].id }
@@ -47,41 +64,112 @@ export class GetInformationFromSapienForSamirUseCase {
                     arrayDeDocumentos = (await getArvoreDocumentoUseCase.execute(objectGetArvoreDocumento)).reverse();
                 } catch (error) {
                     console.log(error);
-                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: "DOSPREV COM FALHA NA GERAÇAO", tarefaId }));
+                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA GERAÇAO - ${etiquetaParaConcatenar}`, tarefaId }));
                     continue
                 }
+
+
+
+
+
+
+
+
+
+                const tcapaParaVerificar: string = await getCapaDoPassivaUseCase.execute(tarefas[i].pasta.NUP, cookie);
+                const tcapaFormatada = new JSDOM(tcapaParaVerificar)
+                const txPathClasse = "/html/body/div/div[4]/table/tbody/tr[2]/td[1]"
+                //const tinfoClasseExist = getXPathText(tcapaFormatada, txPathClasse) == "Classe:"
                 
-                var objectDosPrev = arrayDeDocumentos.find(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV");
+                const tinfoClasseExist = await verificarCapaTrue(tcapaFormatada)
+
                 
-                var objectDosPrevNaoExisti = objectDosPrev == null;
-                if (objectDosPrevNaoExisti) {
-                    arrayDeDocumentos = await coletarArvoreDeDocumentoDoPassivo(objectGetArvoreDocumento)
+
+
+                if(tinfoClasseExist){
+
                     objectDosPrev = arrayDeDocumentos.find(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV");
-                    objectDosPrevNaoExisti = objectDosPrev == null;
-                    if (objectDosPrevNaoExisti) {
-                        console.log("DOSPREV NÃO ECONTRADO");
-                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: "DOSPREV NÃO ECONTRADO", tarefaId }))
-                        continue;
+
+                    var objectDosPrev2 = arrayDeDocumentos.find(Documento => {
+                        const movimento = (Documento.movimento).split(".");
+                        return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
+                    });
+                    
+                    if(objectDosPrev == undefined && objectDosPrev2 == undefined){
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV NÃO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }));
+                        continue
+                    }else if(objectDosPrev2 != undefined && objectDosPrev == undefined){
+                        objectDosPrev = objectDosPrev2;
+                        superDosprevExist = true;
+                    }else if(objectDosPrev != undefined &&  objectDosPrev2 != undefined){
+                        if(objectDosPrev.numeracaoSequencial < objectDosPrev2.numeracaoSequencial){
+                            objectDosPrev = objectDosPrev2;
+                            superDosprevExist = true;
+                        }
+                    }
+
+
+                } else{
+                    console.log("else")
+                    const capaParaVerificar: string = await getCapaDoPassivaUseCase.execute(tarefas[i].pasta.NUP, cookie);
+                    const capaFormatada = new JSDOM(capaParaVerificar)
+                    const xpathNovaNup = "/html/body/div/div[4]/table/tbody/tr[13]/td[2]/a[1]/b"
+                    const novaNup = getXPathText(capaFormatada, xpathNovaNup)
+                    const novoObjectGetArvoreDocumento: IGetArvoreDocumentoDTO = { nup: novaNup, chave: tarefas[i].pasta.chaveAcesso, cookie, tarefa_id: tarefas[i].id }
+                    try { 
+                        const novaNupTratada = novaNup.split("(")[0].trim().replace(/[-/.]/g, "")
+                        novoObjectGetArvoreDocumento.nup = novaNupTratada
+                        arrayDeDocumentos = (await getArvoreDocumentoUseCase.execute(novoObjectGetArvoreDocumento)).reverse();
+                        objectDosPrev = arrayDeDocumentos.find(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV");
+
+                        var objectDosPrev2 = arrayDeDocumentos.find(Documento => {
+                            const movimento = (Documento.movimento).split(".");
+                            return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
+                        });
+
+
+                        if(objectDosPrev == undefined && objectDosPrev2 == undefined){
+                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV NÃO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }));
+                            continue
+                        }else if(objectDosPrev2 != undefined && objectDosPrev == undefined){
+                            objectDosPrev = objectDosPrev2;
+                            superDosprevExist = true;
+                        }else if(objectDosPrev != undefined &&  objectDosPrev2 != undefined){
+                            if(objectDosPrev.numeracaoSequencial < objectDosPrev2.numeracaoSequencial){
+                                objectDosPrev = objectDosPrev2;
+                                superDosprevExist = true;
+                            }
+                        }
+
+
+                    } catch (error) {
+                        console.log(error);
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA GERAÇAO - ${etiquetaParaConcatenar}`, tarefaId }));
+                        continue
                     }
                 }
 
 
+                
 
+
+
+                
 
                 //Verificar a capa caso exista outra capa com os dados necessários
                 const capaParaVerificar: string = await getCapaDoPassivaUseCase.execute(tarefas[i].pasta.NUP, cookie);
                 const capaFormatada = new JSDOM(capaParaVerificar)
-                const xPathClasse = "/html/body/div/div[4]/table/tbody/tr[2]/td[1]"
-                const infoClasseExist = getXPathText(capaFormatada, xPathClasse) == "Classe:" 
+                //const xPathClasse = "/html/body/div/div[4]/table/tbody/tr[2]/td[1]"
+                const infoClasseExist = await verificarCapaTrue(capaFormatada) 
                 if(!infoClasseExist){
-                    console.log(1)
+             
                     const xpathNovaNup = "/html/body/div/div[4]/table/tbody/tr[13]/td[2]/a[1]/b"
                     const novaNup = getXPathText(capaFormatada, xpathNovaNup)
                     const nupFormatada:string = (novaNup.split('(')[0]).replace(/[./-]/g, "").trim();
                     const capa = (await getCapaDoPassivaUseCase.execute(nupFormatada, cookie));
                     novaCapa = new JSDOM(capa)
                 }else{
-                    console.log(2)
+                    
                     const capa = (await getCapaDoPassivaUseCase.execute(tarefas[i].pasta.NUP, cookie));
                     novaCapa = new JSDOM(capa)
                 }
@@ -106,11 +194,18 @@ export class GetInformationFromSapienForSamirUseCase {
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `PROCESSO TJMG - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue;
                 }
+                
 
+                //Buscar cpf para verificação
+              
+                const cpfCapa = buscarTableCpf(novaCapa);
+                if(!cpfCapa){
+                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `CPF NÃO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }))
+                    continue;
+                }
 
-
-
-
+                console.log(cpfCapa)
+               
 
 
 
@@ -125,15 +220,37 @@ export class GetInformationFromSapienForSamirUseCase {
                 const parginaDosPrev = await getDocumentoUseCase.execute({ cookie, idDocument: idDosprevParaPesquisa });
 
                 const parginaDosPrevFormatada = new JSDOM(parginaDosPrev);
+                console.log("TAREFAAAAAAAAA " + tarefaId)
+                if(superDosprevExist){
+                    try{
+                        const superDossiePrevidenciario: IInformationsForCalculeDTO =  await superDossie.handle(parginaDosPrevFormatada, arrayDeDocumentos, tarefas[i].pasta.NUP, tarefas[i].pasta.chaveAcesso, tarefas[i].id, parseInt(tarefaId), novaCapa, cookie, userIdControlerPdf);
+                        response.push(superDossiePrevidenciario);
+                        await updateEtiquetaUseCase.execute({ cookie, etiqueta: `LIDO BOT - ${etiquetaParaConcatenar}`, tarefaId })
+                        continue
 
+                    }catch(e){
+                        if(e instanceof MinhaErroPersonalizado && e.message == "DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE"){
+                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
+                            continue
+                        }
+                        if(e instanceof MinhaErroPersonalizado && e.message == "DOSPREV SEM BENEFICIO VALIDOS"){
+                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV SEM BENEFICIO VALIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
+                            continue
+                        }
+                        if(e instanceof MinhaErroPersonalizado && e.message == "FALHA NA LEITURA DOS BENEFICIOS"){
+                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NA LEITURA DOS BENEFICIOS - ${etiquetaParaConcatenar}`, tarefaId }))
+                            continue
+                        }
+                    }
+                }
 
-                const xpathInformacaoDeCabeçalho = "/html/body/div/p[2]/b[1]"
+               /*  const xpathInformacaoDeCabeçalho = "/html/body/div/p[2]/b[1]"
                 const informacaoDeCabeçalho = getXPathText(parginaDosPrevFormatada, xpathInformacaoDeCabeçalho);
                 console.log("informacaoDeCabeçalho", informacaoDeCabeçalho)
                 const informacaoDeCabeçalhoNaoExiste = !informacaoDeCabeçalho;
-                /* if (informacaoDeCabeçalhoNaoExiste) {
+                if (informacaoDeCabeçalhoNaoExiste) {
                     console.log("DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE");
-                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE$ - {etiquetaParaConcatenar}`, tarefaId }))
+                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
                 // verifica se o dossie ja inspirou, se o VerificaçaoDaQuantidadeDeDiasParaInspirarODossie for negativo que dizer que ja inspirou
@@ -142,7 +259,7 @@ export class GetInformationFromSapienForSamirUseCase {
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 } */
-
+                console.log("aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
                 var beneficios = await getInformaçoesIniciasDosBeneficios(parginaDosPrevFormatada)
                 if (beneficios.length <= 0) {
                     console.log("DOSPREV SEM BENEFICIO VALIDOS");
@@ -164,8 +281,25 @@ export class GetInformationFromSapienForSamirUseCase {
                 const cpf: string = getXPathText(parginaDosPrevFormatada, xpathCpf);
 
                 const urlProcesso = `https://sapiens.agu.gov.br/visualizador?nup=${tarefas[i].pasta.NUP}&chave=${tarefas[i].pasta.chaveAcesso}&tarefaId=${tarefas[i].id}`
+               
                 // console.log("urlProcesso", urlProcesso, "cpf", cpf, "nome", nome, "dataAjuizamento", dataAjuizamento, "numeroDoProcesso", numeroDoProcesso);
-                const citacao = coletarCitacao(arrayDeDocumentos)
+                let citacao = coletarCitacao(arrayDeDocumentos)
+                if (!citacao) coletarDateInCertidao(arrayDeDocumentos);
+                console.log(data)
+                console.log(citacao)
+                if(!citacao){
+                    const searchTypeCape = await verificarAbreviacaoCapa(novaCapa)
+                    if(searchTypeCape == "TJAC"){
+                        citacao = await coletarCitacaoTjac(arrayDeDocumentos, cookie, userIdControlerPdf)
+                    }else if(searchTypeCape == "TJAM"){
+                        citacao = await coletarCitacaoTjam(arrayDeDocumentos, cookie, userIdControlerPdf)
+                    }
+                    if(!citacao){
+                        citacao = ""
+                    }
+                    console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ' + citacao)
+                    deletePDF(userIdControlerPdf)
+                }
                 let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, parseInt(tarefaId))
                 //console.log(informationsForCalculeDTO)
                 // { beneficio: "teste", dibAnterior: "teste", beneficioAcumuladoBoolean: false, dibInicial: "teste", dip: "teste", id: parseInt(tarefaId), nb: "teste", rmi: "teste", tipo: "teste", numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao },
@@ -181,10 +315,13 @@ export class GetInformationFromSapienForSamirUseCase {
 
 
             }
+           
+            if( await verificationPdfExist(userIdControlerPdf)) deletePDF(userIdControlerPdf)
             return await response
         } catch (error) {
             console.log(error);
             console.log(response.length)
+            if(await verificationPdfExist(userIdControlerPdf)) deletePDF(userIdControlerPdf)
             if (response.length > 0) {
                 return response
             }

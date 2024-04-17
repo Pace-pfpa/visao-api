@@ -30,8 +30,9 @@ export class AtualizacaoDossiePrevidenciarioUseCase {
             var tarefas: any[]
             do {
                 tarefas = await getTarefaUseCase.execute({ cookie, usuario_id, etiqueta: data.etiqueta, qunatidadeDeProcesso })
+                let contadorFor = 0;
                 for (const tarefa of tarefas) {
-
+                    const etiquetaParaConcatenar = tarefas[contadorFor].postIt
                     var pessoaId: number;
                     for (let j = 0; j < tarefa.pasta.interessados.length; j++) {
                         if ((tarefa.pasta.interessados[j].pessoa.nome !== "MINIST�RIO P�BLICO fEDERAL (PROCURADORIA)" &&
@@ -54,12 +55,13 @@ export class AtualizacaoDossiePrevidenciarioUseCase {
                         }
 
                         response.push(await solicitarDossiePrevidenciarioUseCase.execute({ cookie, pastaId, pessoaId }));
-                        await updateEtiquetaUseCase.execute({ cookie, etiqueta: "ATUALIZAÇAO DO DOSSIE PREVIDENCIARIO SOLICITADO PELO SISTEMA SAMIR", tarefaId });
+                        await updateEtiquetaUseCase.execute({ cookie, etiqueta: `ATUALIZAÇAO DO DOSSIE PREVIDENCIARIO SOLICITADO PELO SISTEMA SAMIR  - ${etiquetaParaConcatenar}`, tarefaId });
 
                     } catch (error) {
                         console.log("ERRO no processo de atualizaçao do Dossie previdenciario")
-                        await updateEtiquetaUseCase.execute({ cookie, etiqueta: "FALHA AO PEDIR ATUALIZACAO DE DOSSIE PREVIDENCIARIO PELO SISTEMA SAMIR", tarefaId });
+                        await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA AO PEDIR ATUALIZACAO DE DOSSIE PREVIDENCIARIO PELO SISTEMA SAMIR - ${etiquetaParaConcatenar}`, tarefaId });
                     }
+                    contadorFor = contadorFor + 1
 
                 }
             } while (tarefas.length >= qunatidadeDeProcesso);
