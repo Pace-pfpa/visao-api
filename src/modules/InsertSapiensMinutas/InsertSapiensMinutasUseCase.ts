@@ -49,7 +49,7 @@ export class InsertSapiensMinutasUseCase {
                 const pasta_id = `${tarefas[i].pasta.id}`;
                 const usuario_setor = `${tarefas[i].setorResponsavel_id}`
                 const tid = `${tidNumber}`;
-                tarefas[i].postIt = "MEMÓRIA DE CALCULO INSERIDA NA MINUTA";
+                //tarefas[i].postIt = "MEMÓRIA DE CALCULO INSERIDA NA MINUTA";
                 tarefas[i].tid = tidNumber;
                 
                 processoAfazer = minutas.find(minuta => minuta.numeroprocesso == processo);
