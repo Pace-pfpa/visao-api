@@ -18,7 +18,8 @@ export interface IInformationsForCalculeDTO {
     urlProcesso: string,
     dibAnterior: string,
     beneficioAcumuladoBoolean: boolean,
-    tipo: string
+    tipo: string,
+    orgaoJulgador: string
   }
 /**
  * @swagger

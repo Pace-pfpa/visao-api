@@ -33,6 +33,9 @@ export class SuperDossie {
         }
         beneficios = await getInformaçoesSecudariaDosBeneficiosSuperDossie(beneficios, paginaDosprev);
 
+        const xpathOrgaoJulgador = "/html/body/div/div[4]/table/tbody/tr[3]/td";
+        const orgaoJulgador: string = getXPathText(paginaDosprev, xpathOrgaoJulgador);
+
         const xptahNumeroProcesso = "/html/body/div/div[4]/table/tbody/tr[1]/td";
         const numeroDoProcesso: string = (getXPathText(paginaDosprev, xptahNumeroProcesso)).replace(/\D/g, '');
 //
@@ -60,7 +63,7 @@ export class SuperDossie {
                     deletePDF('patrick')
                 }
 
-        let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, tarefaId)
+        let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, tarefaId,orgaoJulgador)
 
         if(isValidInformationsForCalculeDTO(informationsForCalculeDTO)){
             return informationsForCalculeDTO

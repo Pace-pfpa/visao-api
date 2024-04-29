@@ -6,8 +6,8 @@ import { convertToDate } from "./createFormatDate";
 
 let beneficioPrincipal: any;
 
-export async function fazerInformationsForCalculeDTO(beneficios: IBeneficiosDTO[], numeroDoProcesso: string, dataAjuizamento: string, nome: string, cpf: string, urlProcesso: string, citacao: string, id: number): Promise<IInformationsForCalculeDTO> {
-    var result: IInformationsForCalculeDTO = { beneficio: "", dibAnterior: "", beneficioAcumuladoBoolean: false, dibInicial: "", dip: "", id: id, nb: "", rmi: "", tipo: "", numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao };
+export async function fazerInformationsForCalculeDTO(beneficios: IBeneficiosDTO[], numeroDoProcesso: string, dataAjuizamento: string, nome: string, cpf: string, urlProcesso: string, citacao: string, id: number, orgaoJulgador: string): Promise<IInformationsForCalculeDTO> {
+    var result: IInformationsForCalculeDTO = { beneficio: "", dibAnterior: "", beneficioAcumuladoBoolean: false, dibInicial: "", dip: "", id: id, nb: "", rmi: "", tipo: "", numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, orgaoJulgador };
     result = await preencherBeneficioPrincipal(result, beneficios[0])
     beneficioPrincipal = result;
     for (let beneficio of beneficios) {

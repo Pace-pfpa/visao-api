@@ -43,6 +43,7 @@ export class GetInformationFromSapienForSamirUseCase {
         console.log("Login " + cookie)
         const usuario = (await getUsuarioUseCase.execute(cookie));
         const userIdControlerPdf = (jwt.decode(data.usuario_id).id)
+        /* const userIdControlerPdf = (data.usuario_id) */
         console.log(userIdControlerPdf)
         const usuario_id = `${usuario[0].id}`;
         let novaCapa: any = false;
@@ -268,6 +269,9 @@ export class GetInformationFromSapienForSamirUseCase {
                 }
                 beneficios = await getInformaçoesSecudariaDosBeneficios(beneficios, parginaDosPrevFormatada)
 
+                const xpathOrgaoJulgador = "/html/body/div/div[1]/table/tbody/tr[3]/td";
+                const orgaoJulgador: string = getXPathText(parginaDosPrevFormatada, xpathOrgaoJulgador);
+
                 const xpathNumeroDoProcesso = "/html/body/div/div/table/tbody/tr/td"
                 const numeroDoProcesso: string = getXPathText(parginaDosPrevFormatada, xpathNumeroDoProcesso);
 
@@ -285,9 +289,7 @@ export class GetInformationFromSapienForSamirUseCase {
                 // console.log("urlProcesso", urlProcesso, "cpf", cpf, "nome", nome, "dataAjuizamento", dataAjuizamento, "numeroDoProcesso", numeroDoProcesso);
                 let citacao = coletarCitacao(arrayDeDocumentos)
                 if (!citacao) coletarDateInCertidao(arrayDeDocumentos);
-                console.log(data)
-                console.log(citacao)
-                if(!citacao){
+                /* if(!citacao){ 
                     const searchTypeCape = await verificarAbreviacaoCapa(novaCapa)
                     if(searchTypeCape == "TJAC"){
                         citacao = await coletarCitacaoTjac(arrayDeDocumentos, cookie, userIdControlerPdf)
@@ -297,10 +299,9 @@ export class GetInformationFromSapienForSamirUseCase {
                     if(!citacao){
                         citacao = ""
                     }
-                    console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ' + citacao)
                     deletePDF(userIdControlerPdf)
-                }
-                let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, parseInt(tarefaId))
+                } */
+                let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, parseInt(tarefaId),orgaoJulgador)
                 //console.log(informationsForCalculeDTO)
                 // { beneficio: "teste", dibAnterior: "teste", beneficioAcumuladoBoolean: false, dibInicial: "teste", dip: "teste", id: parseInt(tarefaId), nb: "teste", rmi: "teste", tipo: "teste", numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao },
                 //console.log(informationsForCalculeDTO);
