@@ -288,7 +288,7 @@ export class GetInformationFromSapienForSamirUseCase {
                
                 // console.log("urlProcesso", urlProcesso, "cpf", cpf, "nome", nome, "dataAjuizamento", dataAjuizamento, "numeroDoProcesso", numeroDoProcesso);
                 let citacao = coletarCitacao(arrayDeDocumentos)
-                if (!citacao) coletarDateInCertidao(arrayDeDocumentos);
+                /* if (!citacao) coletarDateInCertidao(arrayDeDocumentos); */
                 /* if(!citacao){ 
                     const searchTypeCape = await verificarAbreviacaoCapa(novaCapa)
                     if(searchTypeCape == "TJAC"){
