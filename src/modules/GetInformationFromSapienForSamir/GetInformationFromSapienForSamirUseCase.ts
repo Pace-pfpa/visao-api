@@ -288,8 +288,8 @@ export class GetInformationFromSapienForSamirUseCase {
                
                 // console.log("urlProcesso", urlProcesso, "cpf", cpf, "nome", nome, "dataAjuizamento", dataAjuizamento, "numeroDoProcesso", numeroDoProcesso);
                 let citacao = coletarCitacao(arrayDeDocumentos)
-                /* if (!citacao) coletarDateInCertidao(arrayDeDocumentos); */
-                /* if(!citacao){ 
+                if (!citacao) coletarDateInCertidao(arrayDeDocumentos);
+                if(!citacao){ 
                     const searchTypeCape = await verificarAbreviacaoCapa(novaCapa)
                     if(searchTypeCape == "TJAC"){
                         citacao = await coletarCitacaoTjac(arrayDeDocumentos, cookie, userIdControlerPdf)
@@ -300,7 +300,7 @@ export class GetInformationFromSapienForSamirUseCase {
                         citacao = ""
                     }
                     deletePDF(userIdControlerPdf)
-                } */
+                }
                 let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, parseInt(tarefaId),orgaoJulgador)
                 //console.log(informationsForCalculeDTO)
                 // { beneficio: "teste", dibAnterior: "teste", beneficioAcumuladoBoolean: false, dibInicial: "teste", dip: "teste", id: parseInt(tarefaId), nb: "teste", rmi: "teste", tipo: "teste", numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao },
