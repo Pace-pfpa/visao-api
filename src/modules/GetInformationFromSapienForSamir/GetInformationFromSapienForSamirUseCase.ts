@@ -49,6 +49,7 @@ export class GetInformationFromSapienForSamirUseCase {
         const usuario_id = `${usuario[0].id}`;
         let novaCapa: any = false;
         var objectDosPrev
+        let objectDosPrev2
         let superDosprevExist = false;
         let dossieNormal = false;
         let dosprevEncontrado = false;
@@ -116,12 +117,12 @@ export class GetInformationFromSapienForSamirUseCase {
                         dossieNormal = true;
                         dosprevEncontrado = true;
 
-                        var objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
+                        let objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
                             const movimento = (Documento.movimento).split(".");
                             return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
                         });
 
-
+                        
 
                         if(objectDosPrev2.length > 0){
                             superDosprevExist = true;
@@ -129,7 +130,7 @@ export class GetInformationFromSapienForSamirUseCase {
 
                     }else{
 
-                        var objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
+                        objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
                             const movimento = (Documento.movimento).split(".");
                             return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
                         });
@@ -162,7 +163,7 @@ export class GetInformationFromSapienForSamirUseCase {
                         const novaNupTratada = novaNup.split("(")[0].trim().replace(/[-/.]/g, "")
                         novoObjectGetArvoreDocumento.nup = novaNupTratada
                         arrayDeDocumentos = (await getArvoreDocumentoUseCase.execute(novoObjectGetArvoreDocumento)).reverse();
-                        objectDosPrev = arrayDeDocumentos.filter(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV");
+                        objectDosPrev = arrayDeDocumentos.filter(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV" && Documento.documentoJuntado.origemDados.fonteDados === "SAT_INSS");
                         
                        /*  var objectDosPrev2 = arrayDeDocumentos.find(Documento => {
                             const movimento = (Documento.movimento).split(".");
@@ -188,11 +189,12 @@ export class GetInformationFromSapienForSamirUseCase {
                             dossieNormal = true;
                             dosprevEncontrado = true;
 
-                            let objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
+                            objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
                                 const movimento = (Documento.movimento).split(".");
                                 return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
                             });
 
+                            
 
 
 
@@ -292,7 +294,8 @@ export class GetInformationFromSapienForSamirUseCase {
                 console.log(cpfCapa)
                
 
-
+                console.log(objectDosPrev)
+                console.log(objectDosPrev2)
 
                 if(dossieNormal && !superDosprevExist){
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, null);
@@ -340,7 +343,7 @@ export class GetInformationFromSapienForSamirUseCase {
 
 
 
-
+                
 
 
 
