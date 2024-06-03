@@ -19,13 +19,13 @@ export class SuperDossie {
 
         const informacaoDeCabeçalho = getXPathText(paginaDosprev, xpaththInformacaoCabecalho);
         const informacaoDeCabecalhoNaoExiste = !informacaoDeCabeçalho;
-        /* if (informacaoDeCabecalhoNaoExiste) {
+        if (informacaoDeCabecalhoNaoExiste) {
             throw new MinhaErroPersonalizado('DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE');
-        } */
+        }
 
-        /* if (0 > VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie(informacaoDeCabeçalho)) {
+        if (0 > VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie(informacaoDeCabeçalho)) {
             throw new MinhaErroPersonalizado('DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE');
-        } */
+        }
 
         var beneficios = await getInformaçoesIniciasDosBeneficiosSuperDosprev(paginaDosprev);
         if (beneficios.length <= 0) {
