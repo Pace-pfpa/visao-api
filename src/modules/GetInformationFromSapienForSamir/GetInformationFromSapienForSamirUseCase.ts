@@ -34,6 +34,7 @@ import jwt from 'jsonwebtoken'
 import { id } from 'date-fns/locale';
 import { verificationPdfExist } from './helps/verificationPdfExist';
 import { verificarDossieMaisAtual } from './helps/verificarDossieMaisAtual';
+import { CorrigirCpfComZeros } from './helps/CorrigirCpfComZeros';
 
 
 export class GetInformationFromSapienForSamirUseCase {
@@ -93,7 +94,7 @@ export class GetInformationFromSapienForSamirUseCase {
                
 
                 if(tinfoClasseExist){
-
+                    
                     objectDosPrev = arrayDeDocumentos.filter(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV" && Documento.documentoJuntado.origemDados.fonteDados === "SAT_INSS");
 
                     /* var objectDosPrev2 = arrayDeDocumentos.find(Documento => {
@@ -114,22 +115,24 @@ export class GetInformationFromSapienForSamirUseCase {
                         }
                     } */
                     if(objectDosPrev.length > 0){
+                       
                         dossieNormal = true;
                         dosprevEncontrado = true;
 
-                        let objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
+                         objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
                             const movimento = (Documento.movimento).split(".");
                             return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
                         });
-
+                        
                         
 
                         if(objectDosPrev2.length > 0){
                             superDosprevExist = true;
                         }
 
+                       
                     }else{
-
+                       
                         objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
                             const movimento = (Documento.movimento).split(".");
                             return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
@@ -149,11 +152,11 @@ export class GetInformationFromSapienForSamirUseCase {
                         /* dosprevThisTrue = false;
                         response = response + " DOSPREV NÃO EXISTE -" */
                     }
-                        
-
+                     
+                    
 
                 } else{
-                    console.log("aquiiii")
+                    
                     const capaParaVerificar: string = await getCapaDoPassivaUseCase.execute(tarefas[i].pasta.NUP, cookie);
                     const capaFormatada = new JSDOM(capaParaVerificar)
                     const xpathNovaNup = "/html/body/div/div[4]/table/tbody/tr[13]/td[2]/a[1]/b"
@@ -285,19 +288,16 @@ export class GetInformationFromSapienForSamirUseCase {
 
                 //Buscar cpf para verificação
               
-                const cpfCapa = buscarTableCpf(novaCapa);
+                let cpfCapa = buscarTableCpf(novaCapa);
                 if(!cpfCapa){
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `CPF NÃO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue;
                 }
 
+                cpfCapa = CorrigirCpfComZeros(cpfCapa)
                 console.log(cpfCapa)
-               
-
-                console.log(objectDosPrev)
-                console.log(objectDosPrev2)
-
                 if(dossieNormal && !superDosprevExist){
+                    console.log("foi auqi1")
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, null);
                     
 
@@ -312,6 +312,7 @@ export class GetInformationFromSapienForSamirUseCase {
                    
                     
                 }else if(!dossieNormal && superDosprevExist){
+                    console.log("foi auqi2")
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, null, objectDosPrev2);
                     
                     if(dossieIsvalid instanceof Error){
@@ -322,8 +323,10 @@ export class GetInformationFromSapienForSamirUseCase {
                         objectDosPrev = dossieIsvalid[0]
                     }
                 }else{
+                    console.log("foi auqi3")
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, objectDosPrev2);
-                    
+                    console.log(dossieIsvalid)
+                    console.log("alo")
                     if(dossieIsvalid instanceof Error){
                         (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA`, tarefaId }))
                          continue
