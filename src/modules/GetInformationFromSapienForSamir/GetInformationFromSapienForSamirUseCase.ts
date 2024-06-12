@@ -96,7 +96,7 @@ export class GetInformationFromSapienForSamirUseCase {
                 if(tinfoClasseExist){
                     
                     objectDosPrev = arrayDeDocumentos.filter(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV" && Documento.documentoJuntado.origemDados.fonteDados === "SAT_INSS");
-
+                    
                     /* var objectDosPrev2 = arrayDeDocumentos.find(Documento => {
                         const movimento = (Documento.movimento).split(".");
                         return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
@@ -211,11 +211,11 @@ export class GetInformationFromSapienForSamirUseCase {
 
                         }else{
 
-                            let objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
+                             objectDosPrev2 = arrayDeDocumentos.filter(Documento => {
                                 const movimento = (Documento.movimento).split(".");
                                 return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
                             });
-                        
+                            
                             if(objectDosPrev2.length > 0){
                                 superDosprevExist = true;
                                 dosprevEncontrado = true;
@@ -228,7 +228,8 @@ export class GetInformationFromSapienForSamirUseCase {
                         }    
 
 
-
+                        console.log("aqui oorr")
+                        console.log(objectDosPrev2)
 
 
 
@@ -312,6 +313,7 @@ export class GetInformationFromSapienForSamirUseCase {
                    
                     
                 }else if(!dossieNormal && superDosprevExist){
+                    
                     console.log("foi auqi2")
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, null, objectDosPrev2);
                     
