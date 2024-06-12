@@ -35,6 +35,7 @@ import { id } from 'date-fns/locale';
 import { verificationPdfExist } from './helps/verificationPdfExist';
 import { verificarDossieMaisAtual } from './helps/verificarDossieMaisAtual';
 import { CorrigirCpfComZeros } from './helps/CorrigirCpfComZeros';
+import { coletarCitacaoTjgo } from './GetCitacao/coletarCitacaoTjgo';
 
 
 export class GetInformationFromSapienForSamirUseCase {
@@ -371,7 +372,7 @@ export class GetInformationFromSapienForSamirUseCase {
                 const parginaDosPrev = await getDocumentoUseCase.execute({ cookie, idDocument: idDosprevParaPesquisa });
 
                 const parginaDosPrevFormatada = new JSDOM(parginaDosPrev);
-                console.log("TAREFAAAAAAAAA " + tarefaId)
+               
                 if(superDosprevExist){
                     try{
                         const superDossiePrevidenciario: IInformationsForCalculeDTO =  await superDossie.handle(parginaDosPrevFormatada, arrayDeDocumentos, tarefas[i].pasta.NUP, tarefas[i].pasta.chaveAcesso, tarefas[i].id, parseInt(tarefaId), novaCapa, cookie, userIdControlerPdf);
@@ -399,17 +400,17 @@ export class GetInformationFromSapienForSamirUseCase {
                 const informacaoDeCabeçalho = getXPathText(parginaDosPrevFormatada, xpathInformacaoDeCabeçalho);
                 console.log("informacaoDeCabeçalho", informacaoDeCabeçalho)
                 const informacaoDeCabeçalhoNaoExiste = !informacaoDeCabeçalho;
-                if (informacaoDeCabeçalhoNaoExiste) {
+               /*  if (informacaoDeCabeçalhoNaoExiste) {
                     console.log("DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE");
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
-                }
+                } */
                 // verifica se o dossie ja inspirou, se o VerificaçaoDaQuantidadeDeDiasParaInspirarODossie for negativo que dizer que ja inspirou
-                if (0 > VerificaçaoDaQuantidadeDeDiasParaInspirarODossie(informacaoDeCabeçalho)) {
+                /* if (0 > VerificaçaoDaQuantidadeDeDiasParaInspirarODossie(informacaoDeCabeçalho)) {
                     console.log("DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE");
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
-                }
+                } */
                 console.log("aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
                 var beneficios = await getInformaçoesIniciasDosBeneficios(parginaDosPrevFormatada)
                 if (beneficios.length <= 0) {
@@ -445,6 +446,9 @@ export class GetInformationFromSapienForSamirUseCase {
                         citacao = await coletarCitacaoTjac(arrayDeDocumentos, cookie, userIdControlerPdf)
                     }else if(searchTypeCape == "TJAM"){
                         citacao = await coletarCitacaoTjam(arrayDeDocumentos, cookie, userIdControlerPdf)
+                    }else if(searchTypeCape == "TJGO"){
+                        console.log("entrou GO")
+                        citacao = await coletarCitacaoTjgo(arrayDeDocumentos, cookie, userIdControlerPdf)
                     }
                     if(!citacao){
                         citacao = ""

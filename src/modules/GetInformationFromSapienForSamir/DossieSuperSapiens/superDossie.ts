@@ -12,6 +12,7 @@ import { getInformaçoesIniciasDosBeneficiosSuperDosprev } from "../helps/getInf
 import { getInformaçoesSecudariaDosBeneficiosSuperDossie } from "../helps/getInformaçoesSecudariaDosBeneficiosSuperDossie";
 import { isValidInformationsForCalculeDTO } from "../helps/validadorDeInformationsForCalculeDTO";
 import { verificarAbreviacaoCapa } from "../helps/verificarAbreviacaoCapa";
+import { coletarCitacaoTjgo } from "../GetCitacao/coletarCitacaoTjgo";
 
 export class SuperDossie {
     async handle(paginaDosprev: any, arrayDeDocumentos: any, nup,chaveAcesso, id, tarefaId, novaCapa, cookie, userIdControlerPdf): Promise<IInformationsForCalculeDTO> {
@@ -49,18 +50,26 @@ export class SuperDossie {
         const cpf: string = getXPathText(paginaDosprev, xpathCpf);
 
         const urlProcesso = `https://sapiens.agu.gov.br/visualizador?nup=${nup}&chave=${chaveAcesso}&tarefaId=${id}`
-        console.log(tarefaId)
+        
+        
+
+        //ALINE AFIRMOUUUUU!!!!!12/06/2024
         let citacao = coletarCitacao(arrayDeDocumentos);
         if (!citacao) coletarDateInCertidao(arrayDeDocumentos);
                 if(!citacao){
                     const searchTypeCape = await verificarAbreviacaoCapa(novaCapa)
                     if(searchTypeCape == "TJAC"){
-                        citacao = await coletarCitacaoTjac(arrayDeDocumentos, cookie, userIdControlerPdf)
+                        citacao = await coletarCitacaoTjac(arrayDeDocumentos, cookie, userIdControlerPdf);
                     }else if(searchTypeCape == "TJAM"){
-                        citacao = await coletarCitacaoTjam(arrayDeDocumentos, cookie, userIdControlerPdf)
+                        citacao = await coletarCitacaoTjam(arrayDeDocumentos, cookie, userIdControlerPdf);
+                    }else if(searchTypeCape == "TJGO"){
+                        citacao = await coletarCitacaoTjgo(arrayDeDocumentos, cookie, userIdControlerPdf);
                     }
-                    console.log('buscando abre ' + citacao)
-                    deletePDF('patrick')
+                     if(!citacao){
+                        citacao = ""
+                    }
+                   
+                    deletePDF(userIdControlerPdf)
                 }
 
         let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, tarefaId,orgaoJulgador)

@@ -12,6 +12,8 @@ export async function downloadPDFWithCookies(url: string, cookies: string, id: s
     });
   
     const filePath = path.join("src/modules/PDFS", `${id}.pdf`);
+    console.log("baxou")
+    console.log(response.data)
    /* const filePath = path.join('resources/app/build/modules/GetPdfSislabra/GetPdfSislabra/sislabra.pdf'); */
     //console.log(filePath);
     fs.writeFileSync(filePath, response.data);

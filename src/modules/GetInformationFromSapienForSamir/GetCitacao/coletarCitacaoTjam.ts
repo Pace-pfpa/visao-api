@@ -42,8 +42,8 @@ export async function coletarCitacaoTjam(arrayDeDocument: any, cookie: string, i
          if(citacaoMaisAtoOrdinatorio != -1){
 
 
-            console.log('DSadasasdasdd ' + citacaoMaisAtoOrdinatorio)
-            const palavra1 = 'CITAÇÃO';
+           
+           const palavra1 = 'CITAÇÃO';
            const palavra2 = 'ATO ORDINATÓRIO';
            const regex = new RegExp(`\\b(${palavra1}|${palavra2})\\b`, 'g');
            let match;
