@@ -288,16 +288,17 @@ export class GetInformationFromSapienForSamirUseCase {
                 }
                 
 
-                //Buscar cpf para verificação
+                //Buscar cpf para verificaçãow
               
                 let cpfCapa = buscarTableCpf(novaCapa);
+                console.log("cpf encotnrado")
+                console.log(cpfCapa)
                 if(!cpfCapa){
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `CPF NÃO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue;
                 }
 
                 cpfCapa = CorrigirCpfComZeros(cpfCapa)
-                console.log(cpfCapa)
                 if(dossieNormal && !superDosprevExist){
                     console.log("foi auqi1")
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, null);
@@ -381,8 +382,8 @@ export class GetInformationFromSapienForSamirUseCase {
                         continue
 
                     }catch(e){
-                        if(e instanceof MinhaErroPersonalizado && e.message == "DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE"){
-                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
+                        if(e instanceof MinhaErroPersonalizado && e.message == "DOSPREV FORA DO PRAZO DE VALIDADE"){
+                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                             continue
                         }
                         if(e instanceof MinhaErroPersonalizado && e.message == "DOSPREV SEM BENEFICIO VALIDOS"){

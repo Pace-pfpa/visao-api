@@ -7,7 +7,7 @@ export function buscarTableCpf(capa: string){
         if(tableIsTrue){  
             let verificarLinhaPoloAtivo = tableIsTrue.indexOf("PÓLO ATIVO")
             if(verificarLinhaPoloAtivo != -1){
-                 for(let j=0; j<5;j++){ 
+                 for(let j=0; j<10;j++){ 
                     let xpathCpf = `html/body/div/div[${i}]/table/tbody/tr[${j}]`
                     let poloAtivo = getXPathText(capa, xpathCpf)
                     if(poloAtivo){
