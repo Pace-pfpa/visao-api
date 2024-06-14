@@ -1,6 +1,7 @@
 import { getDocumentoUseCase } from "../../GetDocumento";
 import { downloadPDFWithCookies } from "../../GetPdfSapiens/downloadPDFWithCookies";
 import { readPDF } from "../../GetPdfSapiens/readPDF";
+import { extrairPrimeiraData } from "../helps/ExtrairPrimeiraData";
 import { validarData } from "../helps/validarData";
 const { JSDOM } = require('jsdom');
 
@@ -11,14 +12,17 @@ try{
     
 
     
-    var paginaTermo: any = arrayDeDocument.find(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "TERM" 
+    let paginaTermo: any = arrayDeDocument.find(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "TERM" 
     && Documento.movimento == "JUNTADA DE DOCUMENTO - TERMO ADMINISTRATIVO - PROCEDENTE");
 
 
     if(!paginaTermo){
         return null
     }
-    console.log(paginaTermo)
+
+    
+    
+    
 
     /* const idTermo = paginaTermo.documentoJuntado.componentesDigitais[0].id;
     const parginaTermo = await getDocumentoUseCase.execute({ cookie, idDocument: idTermo });
@@ -33,12 +37,48 @@ try{
 
 
     const pdfString: string = (await readPDF(id))
+    const returnObject: any = {};
+
+    try{
+
+
+        const sentenca = pdfString.split("Sentença");
+        if(sentenca[1].indexOf("Procedência") != -1){
+        const sentencaIdSequencial = sentenca[1].split(":")[1].trim()
+            if(typeof Number(sentencaIdSequencial) === "number"){
+                const paginaSentenca = arrayDeDocument.find(Documento => Documento.numeracaoSequencial == Number(sentencaIdSequencial))
+                if(paginaSentenca){
+                    const dataHonorariosAdvocatiiciosAte = paginaSentenca.movimento.split("DATA:")[1].trim()
+                    const dataEncotradaSentenca = extrairPrimeiraData(dataHonorariosAdvocatiiciosAte)
+                    if(dataEncotradaSentenca && validarData(dataEncotradaSentenca)){
+                       returnObject.dataHonorariosAdvocatiiciosAte = dataEncotradaSentenca
+                    }
+                }
+            }
+        }
+
+
+
+
+    }catch(e){
+        console.log(e)
+        returnObject.dataHonorariosAdvocatiiciosAte = null
+    }
+
+
+
+
     const data = pdfString.split(" ")[3]
+    returnObject.horonariosAdvocaticiosPercentual = '10';
+
+
 
     if(validarData(data)){
-        return data
+        returnObject.citacao = data
+        return returnObject
     }else{
-        return null
+        returnObject.citacao = null
+        return returnObject
     }
 
 

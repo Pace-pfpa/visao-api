@@ -24,7 +24,7 @@ export async function getInformaçoesSecudariaDosBeneficios(beneficios: IBenefic
                 if (nb_EstaDiferenteDoBeneficio) {
                     continue
                 }
-                console.log("dasdasdasdjlihuisadijygdjhdgd " + xpathNbDaTabela)
+                
                 const xphatRMI = "/html/body/div/div[" + idexDaDivParaPesquisarAtabela + "]/div[" + indexDaTabela + "]/table[2]/tbody/tr[2]/td[1]"
 
                 const rmi = correçaoDoErroDeFormatoDoSapiens(getXPathText(paginaHTML_DOSPREV_Formatada, xphatRMI))
@@ -35,7 +35,7 @@ export async function getInformaçoesSecudariaDosBeneficios(beneficios: IBenefic
                 beneficios[idexDoBeneficio].dip = dip;
                 const xpathDibAnterior = "/html/body/div/div[" + idexDaDivParaPesquisarAtabela + "]/div[" + indexDaTabela + "]/table[2]/tbody/tr[2]/td[6]"
                 const dibAnterior = correçaoDoErroDeFormatoDoSapiens(getXPathText(paginaHTML_DOSPREV_Formatada, xpathDibAnterior))
-                console.log("anterior - " + xpathDibAnterior)
+               
                 // console.log("dip", dip, "rmi", rmi, "dibAnterior", dibAnterior);
                 beneficios[idexDoBeneficio].dibAnterior = dibAnterior;
                 idexDaDivParaPesquisarAtabela = numeroMaximoParaProcurarAPosiçaoDasDivDaTabelaDeBeneficio;

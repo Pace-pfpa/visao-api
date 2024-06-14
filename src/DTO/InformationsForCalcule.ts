@@ -19,7 +19,9 @@ export interface IInformationsForCalculeDTO {
     dibAnterior: string,
     beneficioAcumuladoBoolean: boolean,
     tipo: string,
-    orgaoJulgador: string
+    orgaoJulgador: string,
+    honorarioAdvocaticioPercentual: number | string,
+    honorarioAdvocaticioAte: string | null
   }
 /**
  * @swagger

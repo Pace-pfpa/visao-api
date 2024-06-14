@@ -412,7 +412,7 @@ export class GetInformationFromSapienForSamirUseCase {
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
-                console.log("aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+          
                 var beneficios = await getInformaçoesIniciasDosBeneficios(parginaDosPrevFormatada)
                 if (beneficios.length <= 0) {
                     console.log("DOSPREV SEM BENEFICIO VALIDOS");
@@ -439,6 +439,8 @@ export class GetInformationFromSapienForSamirUseCase {
                 const urlProcesso = `https://sapiens.agu.gov.br/visualizador?nup=${tarefas[i].pasta.NUP}&chave=${tarefas[i].pasta.chaveAcesso}&tarefaId=${tarefas[i].id}`
                
                 // console.log("urlProcesso", urlProcesso, "cpf", cpf, "nome", nome, "dataAjuizamento", dataAjuizamento, "numeroDoProcesso", numeroDoProcesso);
+                let honorarioAdvocaticioPercentual: string | null = "";
+                let honorarioAdvocaticioAte: string | null = "";
                 let citacao = coletarCitacao(arrayDeDocumentos)
                 if (!citacao) coletarDateInCertidao(arrayDeDocumentos);
                 if(!citacao){ 
@@ -449,19 +451,24 @@ export class GetInformationFromSapienForSamirUseCase {
                         citacao = await coletarCitacaoTjam(arrayDeDocumentos, cookie, userIdControlerPdf)
                     }else if(searchTypeCape == "TJGO"){
                         console.log("entrou GO")
-                        citacao = await coletarCitacaoTjgo(arrayDeDocumentos, cookie, userIdControlerPdf)
+                        const objetoGo = await coletarCitacaoTjgo(arrayDeDocumentos, cookie, userIdControlerPdf)
+                        citacao = objetoGo.citacao;
+                        honorarioAdvocaticioPercentual = objetoGo.horonariosAdvocaticiosPercentual;
+                        honorarioAdvocaticioAte = objetoGo.dataHonorariosAdvocatiiciosAte;
                     }
+                    if(!honorarioAdvocaticioPercentual) honorarioAdvocaticioPercentual = "";
+                    if(!honorarioAdvocaticioAte) honorarioAdvocaticioAte = "";
                     if(!citacao){
                         citacao = ""
                     }
+                    
                     deletePDF(userIdControlerPdf)
                 }
                 let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, parseInt(tarefaId),orgaoJulgador)
-                //console.log(informationsForCalculeDTO)
-                // { beneficio: "teste", dibAnterior: "teste", beneficioAcumuladoBoolean: false, dibInicial: "teste", dip: "teste", id: parseInt(tarefaId), nb: "teste", rmi: "teste", tipo: "teste", numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao },
-                //console.log(informationsForCalculeDTO);
-                // console.log("processo coletado");
-                // console.log(informationsForCalculeDTO);
+                informationsForCalculeDTO.honorarioAdvocaticioPercentual = honorarioAdvocaticioPercentual;
+                informationsForCalculeDTO.honorarioAdvocaticioAte = honorarioAdvocaticioAte;
+                
+                
                 if (isValidInformationsForCalculeDTO(informationsForCalculeDTO)) {
                     response.push(informationsForCalculeDTO);
                     await updateEtiquetaUseCase.execute({ cookie, etiqueta: `LIDO BOT - ${etiquetaParaConcatenar}`, tarefaId })

@@ -89,7 +89,6 @@ export async function coletarCitacaoTjam(arrayDeDocument: any, cookie: string, i
          }
 
          const splitCerticao = pdfString.indexOf("CERTIDÃO AUTOMÁTICA")
-         console.log(pdfString.split("CERTIDÃO AUTOMÁTICA").length)
          if(splitCerticao != -1){
             if(pdfString.split("CERTIDÃO AUTOMÁTICA").length > 1){
                 const textoAposPalavraChave = pdfString.substring(splitCerticao + "CERTIDÃO AUTOMÁTICA".length);
