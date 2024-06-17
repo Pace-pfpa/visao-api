@@ -81,7 +81,7 @@ export class GetInformationFromSapienForSamirUseCase {
 
 
 
-
+ 
 
 
                 const tcapaParaVerificar: string = await getCapaDoPassivaUseCase.execute(tarefas[i].pasta.NUP, cookie);
@@ -97,7 +97,7 @@ export class GetInformationFromSapienForSamirUseCase {
                 if(tinfoClasseExist){
                     
                     objectDosPrev = arrayDeDocumentos.filter(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV" && Documento.documentoJuntado.origemDados.fonteDados === "SAT_INSS");
-                    
+                   
                     /* var objectDosPrev2 = arrayDeDocumentos.find(Documento => {
                         const movimento = (Documento.movimento).split(".");
                         return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
@@ -439,7 +439,7 @@ export class GetInformationFromSapienForSamirUseCase {
                 const urlProcesso = `https://sapiens.agu.gov.br/visualizador?nup=${tarefas[i].pasta.NUP}&chave=${tarefas[i].pasta.chaveAcesso}&tarefaId=${tarefas[i].id}`
                
                 // console.log("urlProcesso", urlProcesso, "cpf", cpf, "nome", nome, "dataAjuizamento", dataAjuizamento, "numeroDoProcesso", numeroDoProcesso);
-                let honorarioAdvocaticioPercentual: string | null = "";
+                let honorarioAdvocaticioPercentual: number | null = 0;
                 let honorarioAdvocaticioAte: string | null = "";
                 let citacao = coletarCitacao(arrayDeDocumentos)
                 if (!citacao) coletarDateInCertidao(arrayDeDocumentos);
@@ -456,7 +456,7 @@ export class GetInformationFromSapienForSamirUseCase {
                         honorarioAdvocaticioPercentual = objetoGo.horonariosAdvocaticiosPercentual;
                         honorarioAdvocaticioAte = objetoGo.dataHonorariosAdvocatiiciosAte;
                     }
-                    if(!honorarioAdvocaticioPercentual) honorarioAdvocaticioPercentual = "";
+                    if(!honorarioAdvocaticioPercentual) honorarioAdvocaticioPercentual = null;
                     if(!honorarioAdvocaticioAte) honorarioAdvocaticioAte = "";
                     if(!citacao){
                         citacao = ""

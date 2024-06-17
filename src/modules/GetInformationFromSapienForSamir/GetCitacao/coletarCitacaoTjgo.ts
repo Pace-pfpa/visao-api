@@ -69,7 +69,7 @@ try{
 
 
     const data = pdfString.split(" ")[3]
-    returnObject.horonariosAdvocaticiosPercentual = '10';
+    returnObject.horonariosAdvocaticiosPercentual = 10;
 
 
 
