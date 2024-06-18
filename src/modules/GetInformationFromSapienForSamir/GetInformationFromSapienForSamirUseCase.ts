@@ -452,9 +452,15 @@ export class GetInformationFromSapienForSamirUseCase {
                     }else if(searchTypeCape == "TJGO"){
                         console.log("entrou GO")
                         const objetoGo = await coletarCitacaoTjgo(arrayDeDocumentos, cookie, userIdControlerPdf)
-                        citacao = objetoGo.citacao;
-                        honorarioAdvocaticioPercentual = objetoGo.horonariosAdvocaticiosPercentual;
-                        honorarioAdvocaticioAte = objetoGo.dataHonorariosAdvocatiiciosAte;
+                        if(objetoGo){
+                            citacao = objetoGo.citacao;
+                            honorarioAdvocaticioPercentual = objetoGo.horonariosAdvocaticiosPercentual;
+                            honorarioAdvocaticioAte = objetoGo.dataHonorariosAdvocatiiciosAte;
+                        }else{
+                            citacao = null;
+                            honorarioAdvocaticioPercentual = null;
+                            honorarioAdvocaticioAte = null;
+                        }
                     }
                     if(!honorarioAdvocaticioPercentual) honorarioAdvocaticioPercentual = null;
                     if(!honorarioAdvocaticioAte) honorarioAdvocaticioAte = "";
