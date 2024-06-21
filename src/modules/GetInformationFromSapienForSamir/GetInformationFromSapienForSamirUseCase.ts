@@ -289,16 +289,24 @@ export class GetInformationFromSapienForSamirUseCase {
                 
 
                 //Buscar cpf para verificaçãow
-              
-                let cpfCapa = buscarTableCpf(novaCapa);
-                console.log("cpf encotnrado")
-                console.log(cpfCapa)
+                let cpfCapa: string;
+                try{
+                     cpfCapa = buscarTableCpf(novaCapa);
+                }catch(e){
+                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `INSS POLO ATIVO - ${etiquetaParaConcatenar}`, tarefaId }))
+                    continue;
+                }
+                
+                
                 if(!cpfCapa){
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `CPF NÃO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue;
                 }
 
                 cpfCapa = CorrigirCpfComZeros(cpfCapa)
+                console.log("PATRICK")
+                console.log(cpfCapa)
+                
                 if(dossieNormal && !superDosprevExist){
                     console.log("foi auqi1")
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, null);
@@ -454,13 +462,12 @@ export class GetInformationFromSapienForSamirUseCase {
                         const objetoGo = await coletarCitacaoTjgo(arrayDeDocumentos, cookie, userIdControlerPdf)
                         if(objetoGo){
                             citacao = objetoGo.citacao;
-                            honorarioAdvocaticioPercentual = objetoGo.horonariosAdvocaticiosPercentual;
                             honorarioAdvocaticioAte = objetoGo.dataHonorariosAdvocatiiciosAte;
                         }else{
                             citacao = null;
-                            honorarioAdvocaticioPercentual = null;
                             honorarioAdvocaticioAte = null;
                         }
+                        honorarioAdvocaticioPercentual = 10;
                     }
                     if(!honorarioAdvocaticioPercentual) honorarioAdvocaticioPercentual = null;
                     if(!honorarioAdvocaticioAte) honorarioAdvocaticioAte = "";

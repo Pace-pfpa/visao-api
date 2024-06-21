@@ -10,11 +10,12 @@ export async function verificarDossieMaisAtual(cpf: string, cookie:string ,norma
  try{
      if(normalDossie && !superDossie){
          for(let i = 0; i < normalDossie.length; i++){
+            
              let objetoDosprev =  (normalDossie[i].documentoJuntado.componentesDigitais.length) <= 0 ||  (!normalDossie[i].documentoJuntado.componentesDigitais[0].id) 
              if(objetoDosprev){
                  return new Error("DOSPREV COM FALHA NA PESQUISA")
              }
-     
+             
              const idDosprevParaPesquisa = normalDossie[i].documentoJuntado.componentesDigitais[0].id;
              const parginaDosPrev = await getDocumentoUseCase.execute({ cookie, idDocument: idDosprevParaPesquisa });
      
@@ -22,8 +23,10 @@ export async function verificarDossieMaisAtual(cpf: string, cookie:string ,norma
      
              const xpathCpfDosprev = "/html/body/div/div[1]/table/tbody/tr[7]/td"
              const cpfDosprev = getXPathText(parginaDosPrevFormatada, xpathCpfDosprev);
-     
-             if(!cpfDosprev) return new Error("cpf com falha na pesquisa dosprev")
+             console.log("&&&&&&&&")
+             console.log(cpfDosprev)
+             console.log(cpf)
+             if(!cpfDosprev) throw new Error("cpf com falha na pesquisa dosprev")
      
              if(cpf.trim() == CorrigirCpfComZeros(cpfDosprev.trim())){
                  console.log("retornou")

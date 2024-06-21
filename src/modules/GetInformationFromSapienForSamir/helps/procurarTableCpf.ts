@@ -1,4 +1,5 @@
 import { getXPathText } from "../../../helps/GetTextoPorXPATH";
+import { MinhaErroPersonalizado } from "./ErrorMensage";
 
 export function buscarTableCpf(capa: string){
     for(let i=0; i<10; i++){
@@ -13,7 +14,12 @@ export function buscarTableCpf(capa: string){
                     if(poloAtivo){
                          let poloAtivoCpf = poloAtivo.indexOf("PÓLO ATIVO")
                          if(poloAtivoCpf != -1){
-                            return (poloAtivo.split(/[()]/)[1]).replaceAll(/[.-]/g, "")
+                            const cpfFiltrado = (poloAtivo.split(/[()]/)[1]).replaceAll(/[.-]/g, "")
+                            console.log("CPF FILTRADO")
+                            console.log(cpfFiltrado);
+                            console.log(cpfFiltrado.length)
+                            if(cpfFiltrado.length > 13) throw new MinhaErroPersonalizado('erro cpf');
+                            return cpfFiltrado
                          }
                     }
                  }
