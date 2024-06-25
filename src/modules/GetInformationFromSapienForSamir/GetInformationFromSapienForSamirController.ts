@@ -9,6 +9,8 @@ export class GetInformationFromSapienForSamirController {
         console.log(request.body)
         try {
             const result = await this.getInformationFromSapienForSamirUseCase.execute(data);
+
+
             response.status(200).json(result);
         } catch (error) {
             return response.status(400).json({

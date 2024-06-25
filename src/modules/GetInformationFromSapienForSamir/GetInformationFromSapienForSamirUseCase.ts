@@ -313,7 +313,7 @@ export class GetInformationFromSapienForSamirUseCase {
                     
 
                     if(dossieIsvalid instanceof Error){
-                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA`, tarefaId }))
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                          continue
                     }else{
 
@@ -328,7 +328,7 @@ export class GetInformationFromSapienForSamirUseCase {
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, null, objectDosPrev2);
                     
                     if(dossieIsvalid instanceof Error){
-                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA`, tarefaId }))
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                          continue
                     }else{
                         
@@ -340,7 +340,7 @@ export class GetInformationFromSapienForSamirUseCase {
                     console.log(dossieIsvalid)
                     console.log("alo")
                     if(dossieIsvalid instanceof Error){
-                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA`, tarefaId }))
+                        (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                          continue
                     }else{
                         if(dossieIsvalid[1] == 0){

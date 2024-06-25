@@ -35,7 +35,25 @@ export const routerGetInformationsForSamir = Router();
  */
 
 
+routerGetInformationsForSamir.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`Requisição ${req.method} ${req.originalUrl} levou ${duration}ms`);
+    });
+    next();
+});
+
+
+
 routerGetInformationsForSamir.post("/getInformationFromSapienForSamir", async (req, res) => {
+
+    const oldSend = res.send;
+    res.send = function(data) {
+        console.log(`Tamanho da resposta: ${Buffer.byteLength(data)} bytes`);
+        return oldSend.apply(res, arguments); // Adicionado 'return' aqui
+    };
+    
     return getInformationFromSapienForSamirController.handle(req, res);
 })
 

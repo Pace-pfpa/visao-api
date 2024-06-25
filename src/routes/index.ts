@@ -19,6 +19,7 @@ routes.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerJSDoc(Options)));
 /**
  * Error tratament
  */
+
 routes.use((req, res, next) => {
     const error = new Error("I`m Batman!!");
     next(error)
