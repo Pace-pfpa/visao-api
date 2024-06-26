@@ -335,10 +335,7 @@ export class GetInformationFromSapienForSamirUseCase {
                         objectDosPrev = dossieIsvalid[0]
                     }
                 }else{
-                    console.log("foi auqi3")
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, objectDosPrev2);
-                    console.log(dossieIsvalid)
-                    console.log("alo")
                     if(dossieIsvalid instanceof Error){
                         (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                          continue
