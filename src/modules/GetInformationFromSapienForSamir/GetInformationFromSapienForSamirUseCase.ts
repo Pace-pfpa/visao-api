@@ -419,12 +419,27 @@ export class GetInformationFromSapienForSamirUseCase {
                 }
           
                 var beneficios = await getInformaçoesIniciasDosBeneficios(parginaDosPrevFormatada)
+                console.log("pegou aqui pra ver se tem beneficios")
+                console.log("beneficios", beneficios)
+
+
                 if (beneficios.length <= 0) {
                     console.log("DOSPREV SEM BENEFICIO VALIDOS");
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV SEM BENEFICIOS VALIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
                 beneficios = await getInformaçoesSecudariaDosBeneficios(beneficios, parginaDosPrevFormatada)
+
+               
+                const documentAtivo = beneficios.find(beneficio => beneficio.tipo === "ATIVO")
+
+                console.log("documentAtivo", documentAtivo)
+                if(!documentAtivo || !documentAtivo.rmi || !documentAtivo.dib || !documentAtivo.dip){
+                    (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NAS INFORMAÇÕES BENEFICIOS VÁLIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
+                    continue
+                }
+
+
 
                 const xpathOrgaoJulgador = "/html/body/div/div[1]/table/tbody/tr[3]/td";
                 const orgaoJulgador: string = getXPathText(parginaDosPrevFormatada, xpathOrgaoJulgador);

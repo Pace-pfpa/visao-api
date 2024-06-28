@@ -9,7 +9,10 @@ let beneficioPrincipal: any;
 export async function fazerInformationsForCalculeDTO(beneficios: IBeneficiosDTO[], numeroDoProcesso: string, dataAjuizamento: string, nome: string, cpf: string, urlProcesso: string, citacao: string, id: number, orgaoJulgador: string): Promise<IInformationsForCalculeDTO> {
     var result: IInformationsForCalculeDTO = { beneficio: "", dibAnterior: "", beneficioAcumuladoBoolean: false, dibInicial: "", dip: "", id: id, nb: "", rmi: "", tipo: "", numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, orgaoJulgador };
     result = await preencherBeneficioPrincipal(result, beneficios[0])
+    console.log("result", beneficios[0])
+    console.log("result", result)
     beneficioPrincipal = result;
+    console.log("beneficioPrincipal", beneficioPrincipal)
     for (let beneficio of beneficios) {
         if(beneficio.nb == result.nb){
             continue
@@ -41,6 +44,7 @@ function preencherBeneficioPrincipal(result: IInformationsForCalculeDTO, benefic
 }
 async function converterArrayDeBenefiosParaArrayDeBeneficiosAcumulados(beneficios: IBeneficiosDTO[]): Promise<IBeneficiosAcumuladoForCalculeDTO[]>{
     var beneficiosAcumulados: IBeneficiosAcumuladoForCalculeDTO[] = [];
+   
     for(let beneficio of beneficios){
         if(convertToDate(beneficioPrincipal.dibInicial) <= convertToDate(beneficio.dib) && convertToDate(beneficioPrincipal.dip) >= convertToDate(beneficio.dib) || 
         convertToDate(beneficioPrincipal.dibInicial) >= convertToDate(beneficio.dib) &&  convertToDate(beneficioPrincipal.dip) >= convertToDate(beneficio.dcb) && convertToDate(beneficio.dcb) >= convertToDate(beneficioPrincipal.dibInicial)){
