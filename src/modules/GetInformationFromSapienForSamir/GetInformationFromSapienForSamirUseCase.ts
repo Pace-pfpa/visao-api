@@ -56,6 +56,12 @@ export class GetInformationFromSapienForSamirUseCase {
         let dossieNormal = false;
         let dosprevEncontrado = false;
         let response: Array<IInformationsForCalculeDTO> = [];
+        let responseWariningAndErros: {foraDoPrazoDeValidade: number, dosprevNaoEncontrado: number,
+              dosprevComFalhaNaGeracao: number, inssPoloAtivo: number, cpfNaoEncontrado: number,
+              dosprevComFalhaNaPesquisa: number, dosprevSemBeneficiosValidos: number,
+              falhaNaLeituraDosBeneficios: number} = {foraDoPrazoDeValidade: 0, dosprevNaoEncontrado: 0,
+              dosprevComFalhaNaGeracao: 0, inssPoloAtivo: 0, cpfNaoEncontrado: 0,
+              dosprevComFalhaNaPesquisa: 0, dosprevSemBeneficiosValidos: 0, falhaNaLeituraDosBeneficios: 0}
         try {
             const tarefas = await getTarefaUseCase.execute({ cookie, usuario_id, etiqueta: data.etiqueta });
             /* const tarefas = await getTarefaUseCaseNup.execute({ cookie, usuario_id, nup: data.nup }); */
@@ -143,7 +149,7 @@ export class GetInformationFromSapienForSamirUseCase {
                             dosprevEncontrado = true;
                             superDosprevExist = true;
                         }else{
-
+                            responseWariningAndErros.dosprevNaoEncontrado += 1;
                             (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV NAO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }));
                              continue
                         }
@@ -221,6 +227,7 @@ export class GetInformationFromSapienForSamirUseCase {
                                 superDosprevExist = true;
                                 dosprevEncontrado = true;
                             }else{
+                                responseWariningAndErros.dosprevNaoEncontrado += 1;
                                 (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV NAO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }));
                                 continue
                             }
@@ -229,13 +236,13 @@ export class GetInformationFromSapienForSamirUseCase {
                         }    
 
 
-                        console.log("aqui oorr")
-                        console.log(objectDosPrev2)
+                      
 
 
 
                     } catch (error) {
                         console.log(error);
+                        responseWariningAndErros.dosprevComFalhaNaGeracao += 1;
                         (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA GERAÇAO - ${etiquetaParaConcatenar}`, tarefaId }));
                         continue
                     }
@@ -293,26 +300,28 @@ export class GetInformationFromSapienForSamirUseCase {
                 try{
                      cpfCapa = buscarTableCpf(novaCapa);
                 }catch(e){
+                    responseWariningAndErros.inssPoloAtivo += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `INSS POLO ATIVO - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue;
                 }
                 
                 
                 if(!cpfCapa){
+                    responseWariningAndErros.cpfNaoEncontrado += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `CPF NÃO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue;
                 }
 
                 cpfCapa = CorrigirCpfComZeros(cpfCapa)
-                console.log("PATRICK")
-                console.log(cpfCapa)
+                
                 
                 if(dossieNormal && !superDosprevExist){
-                    console.log("foi auqi1")
+                    
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, null);
                     
 
                     if(dossieIsvalid instanceof Error){
+                        responseWariningAndErros.dosprevComFalhaNaPesquisa += 1;
                         (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                          continue
                     }else{
@@ -328,6 +337,7 @@ export class GetInformationFromSapienForSamirUseCase {
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, null, objectDosPrev2);
                     
                     if(dossieIsvalid instanceof Error){
+                        responseWariningAndErros.dosprevComFalhaNaPesquisa += 1;
                         (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                          continue
                     }else{
@@ -337,6 +347,7 @@ export class GetInformationFromSapienForSamirUseCase {
                 }else{
                     const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, objectDosPrev2);
                     if(dossieIsvalid instanceof Error){
+                        responseWariningAndErros.dosprevComFalhaNaPesquisa += 1;
                         (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                          continue
                     }else{
@@ -370,7 +381,7 @@ export class GetInformationFromSapienForSamirUseCase {
 
                 const dosPrevSemIdParaPesquisa = (objectDosPrev.documentoJuntado.componentesDigitais.length) <= 0;
                 if (dosPrevSemIdParaPesquisa) {
-                    console.log("DOSPREV COM FALHA NA PESQUISA");
+                    responseWariningAndErros.dosprevComFalhaNaPesquisa += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue;
                 }
@@ -388,14 +399,17 @@ export class GetInformationFromSapienForSamirUseCase {
 
                     }catch(e){
                         if(e instanceof MinhaErroPersonalizado && e.message == "DOSPREV FORA DO PRAZO DE VALIDADE"){
+                            responseWariningAndErros.foraDoPrazoDeValidade += 1;
                             (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                             continue
                         }
                         if(e instanceof MinhaErroPersonalizado && e.message == "DOSPREV SEM BENEFICIO VALIDOS"){
+                            responseWariningAndErros.dosprevSemBeneficiosValidos += 1;
                             (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV SEM BENEFICIO VALIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
                             continue
                         }
                         if(e instanceof MinhaErroPersonalizado && e.message == "FALHA NA LEITURA DOS BENEFICIOS"){
+                            responseWariningAndErros.falhaNaLeituraDosBeneficios += 1;
                             (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NA LEITURA DOS BENEFICIOS - ${etiquetaParaConcatenar}`, tarefaId }))
                             continue
                         }
@@ -407,24 +421,21 @@ export class GetInformationFromSapienForSamirUseCase {
                 console.log("informacaoDeCabeçalho", informacaoDeCabeçalho)
                 const informacaoDeCabeçalhoNaoExiste = !informacaoDeCabeçalho;
                 if (informacaoDeCabeçalhoNaoExiste) {
-                    console.log("DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE");
+                    responseWariningAndErros.foraDoPrazoDeValidade += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
                 // verifica se o dossie ja inspirou, se o VerificaçaoDaQuantidadeDeDiasParaInspirarODossie for negativo que dizer que ja inspirou
                 if (0 > VerificaçaoDaQuantidadeDeDiasParaInspirarODossie(informacaoDeCabeçalho)) {
-                    console.log("DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE");
+                    responseWariningAndErros.foraDoPrazoDeValidade += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
           
                 var beneficios = await getInformaçoesIniciasDosBeneficios(parginaDosPrevFormatada)
-                console.log("pegou aqui pra ver se tem beneficios")
-                console.log("beneficios", beneficios)
-
 
                 if (beneficios.length <= 0) {
-                    console.log("DOSPREV SEM BENEFICIO VALIDOS");
+                    responseWariningAndErros.dosprevSemBeneficiosValidos += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV SEM BENEFICIOS VALIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
@@ -435,6 +446,7 @@ export class GetInformationFromSapienForSamirUseCase {
 
                 console.log("documentAtivo", documentAtivo)
                 if(!documentAtivo || !documentAtivo.rmi || !documentAtivo.dib || !documentAtivo.dip){
+                    responseWariningAndErros.falhaNaLeituraDosBeneficios += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NAS INFORMAÇÕES BENEFICIOS VÁLIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
@@ -505,13 +517,15 @@ export class GetInformationFromSapienForSamirUseCase {
             }
            
             if( await verificationPdfExist(userIdControlerPdf)) deletePDF(userIdControlerPdf)
-            return await response
+            console.log("responseWariningAndErros")
+            console.log(responseWariningAndErros)
+            return await [response, responseWariningAndErros]
         } catch (error) {
             console.log(error);
             console.log(response.length)
             if(await verificationPdfExist(userIdControlerPdf)) deletePDF(userIdControlerPdf)
             if (response.length > 0) {
-                return response
+                return [response, responseWariningAndErros]
             }
             else {
                 return error;
