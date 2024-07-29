@@ -6,7 +6,6 @@ export async function requestSapiens(cookie: string, payload: string): Promise<a
     const baseURL = `https://sapiens.agu.gov.br/route`
     const data = await JSON.parse(payload);
     return await axios.post(baseURL, data, { headers }).then(response => {
-        
         return response.data;
     }).catch(error => {
         console.log(error)

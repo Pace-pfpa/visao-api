@@ -4,6 +4,8 @@ export interface IGetInformationsFromSapiensDTO {
     login: ILoginDTO;
     etiqueta: string;
     usuario_id: string;
+    nb_processo?: string;
+    nup?: string;
 }
 
 

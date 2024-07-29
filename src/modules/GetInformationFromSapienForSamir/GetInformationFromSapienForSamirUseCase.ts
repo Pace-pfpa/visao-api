@@ -36,18 +36,21 @@ import { verificationPdfExist } from './helps/verificationPdfExist';
 import { verificarDossieMaisAtual } from './helps/verificarDossieMaisAtual';
 import { CorrigirCpfComZeros } from './helps/CorrigirCpfComZeros';
 import { coletarCitacaoTjgo } from './GetCitacao/coletarCitacaoTjgo';
+import axios from 'axios';
+import xml2js from 'xml2js';
+import fs from 'fs';
 
 
 export class GetInformationFromSapienForSamirUseCase {
 
     async execute(data: IGetInformationsFromSapiensDTO): Promise<any> {
-        console.log("SADSADAS " + JSON.stringify(data))
         const cookie = await loginUseCase.execute(data.login);
-        console.log("Login " + cookie)
+        
         const usuario = (await getUsuarioUseCase.execute(cookie));
+        
         const userIdControlerPdf = (jwt.decode(data.usuario_id).id)
         /* const userIdControlerPdf = (data.usuario_id) */
-        console.log(userIdControlerPdf)
+        
         const usuario_id = `${usuario[0].id}`;
         let novaCapa: any = false;
         var objectDosPrev
@@ -63,7 +66,13 @@ export class GetInformationFromSapienForSamirUseCase {
               dosprevComFalhaNaGeracao: 0, inssPoloAtivo: 0, cpfNaoEncontrado: 0,
               dosprevComFalhaNaPesquisa: 0, dosprevSemBeneficiosValidos: 0, falhaNaLeituraDosBeneficios: 0}
         try {
-            const tarefas = await getTarefaUseCase.execute({ cookie, usuario_id, etiqueta: data.etiqueta });
+            let tarefas;
+            if(data.nb_processo){
+                tarefas = await getTarefaUseCaseNup.execute({ cookie, usuario_id, nup: data.nup });
+                
+            }else{
+                tarefas = await getTarefaUseCase.execute({ cookie, usuario_id, etiqueta: data.etiqueta });
+            }
             /* const tarefas = await getTarefaUseCaseNup.execute({ cookie, usuario_id, nup: data.nup }); */
             
             for (var i = 0; i <= tarefas.length - 1; i++) {
@@ -252,6 +261,73 @@ export class GetInformationFromSapienForSamirUseCase {
                 
 
 
+                //rmi
+                /* const xml = `
+                <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://www.cnj.jus.br/servico-intercomunicacao-2.2.2/" xmlns:tip="http://www.cnj.jus.br/tipos-servico-intercomunicacao-2.2.2">
+                <soapenv:Header/>
+                <soapenv:Body>
+                    <ser:consultarProcesso>
+                        <tip:idConsultante>05559042617</tip:idConsultante>
+                        <tip:senhaConsultante>Theofilo24@</tip:senhaConsultante>
+                        <tip:numeroProcesso>1003840-92.2022.4.01.3903</tip:numeroProcesso>
+                        <tip:incluirDocumentos>true</tip:incluirDocumentos>
+                    </ser:consultarProcesso>
+                </soapenv:Body>
+                </soapenv:Envelope>
+                `;
+
+
+                const config = {
+                    headers: {
+                      'Content-Type': 'text/xml;charset=UTF-8'
+                    }
+                  };
+
+                  const url = 'https://pje1g.trf1.jus.br/pje/intercomunicacao?wsdl';
+
+                  try{
+                    const response = await axios.post(url, xml, config);
+                    console.log("retorno")
+                    const contentType = response.headers
+                    const xmll = await response.data.split("Content-ID: <root.message@cxf.apache.org>");
+
+                    console.log((await parseXML(xmll[1]))) */
+                    /* try {
+                        const jsonString = JSON.stringify((await parseXML(xmll[1])), null, 2); // Convertendo o objeto para JSON formatado
+                        await fs.writeFile('src/modules/PDFS/teste.xml', jsonString, (err) => {
+                            if (err) throw err;
+                            console.log('Arquivo XML foi salvo com sucesso!');
+                        });
+                    } catch (err) {
+                        console.error('Erro ao salvar o arquivo:', err);
+                    } */
+
+                    //console.log((await parseXML(xmll[1]))['soap:Envelope']['soap:Body']['ns4:consultarProcessoResposta']['processo']['ns2:dadosBasicos'])
+                    /* const parsedXML = await parseXML(xmll.toString().trim().replace(/^[\s\S]*?<\?xml/, '<?xml')); */
+                   /*  console.log(parsedXML) */
+
+
+
+
+
+                /*   }catch(e){
+                    console.log(e)
+                  }	 */
+
+
+
+
+                  async function parseXML(xmlData) {
+                    try {
+                        // Limpeza de dados
+                        const parser = new xml2js.Parser({ explicitArray: false });
+                        const result = await parser.parseStringPromise(xmlData);
+                        return result;
+                    } catch (error) {
+                        console.error('Erro ao parsear XML:', error);
+                    }
+                }
+
 
                 
 
@@ -392,7 +468,9 @@ export class GetInformationFromSapienForSamirUseCase {
                
                 if(superDosprevExist){
                     try{
-                        const superDossiePrevidenciario: IInformationsForCalculeDTO =  await superDossie.handle(parginaDosPrevFormatada, arrayDeDocumentos, tarefas[i].pasta.NUP, tarefas[i].pasta.chaveAcesso, tarefas[i].id, parseInt(tarefaId), novaCapa, cookie, userIdControlerPdf);
+                        const superDossiePrevidenciario: IInformationsForCalculeDTO =  await superDossie.handle(parginaDosPrevFormatada, arrayDeDocumentos, tarefas[i].pasta.NUP,
+                        tarefas[i].pasta.chaveAcesso, tarefas[i].id, parseInt(tarefaId), novaCapa, cookie, userIdControlerPdf, data);
+                        
                         response.push(superDossiePrevidenciario);
                         await updateEtiquetaUseCase.execute({ cookie, etiqueta: `LIDO BOT - ${etiquetaParaConcatenar}`, tarefaId })
                         continue
@@ -432,24 +510,50 @@ export class GetInformationFromSapienForSamirUseCase {
                     continue
                 }
           
-                var beneficios = await getInformaçoesIniciasDosBeneficios(parginaDosPrevFormatada)
+                var beneficios = await getInformaçoesIniciasDosBeneficios(parginaDosPrevFormatada);
 
                 if (beneficios.length <= 0) {
                     responseWariningAndErros.dosprevSemBeneficiosValidos += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV SEM BENEFICIOS VALIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
-                beneficios = await getInformaçoesSecudariaDosBeneficios(beneficios, parginaDosPrevFormatada)
+                
+                try{
+                    beneficios = await getInformaçoesSecudariaDosBeneficios(beneficios, parginaDosPrevFormatada)
+                }catch(e){
+                    responseWariningAndErros.falhaNaLeituraDosBeneficios += 1;
+                    continue;
+                }
 
                
-                const documentAtivo = beneficios.find(beneficio => beneficio.tipo === "ATIVO")
+                //const documentAtivo = beneficios.find(beneficio => beneficio.tipo === "ATIVO")
+                
+                let tipoBeneficioProcurado = "";
+                if(data.nb_processo){
+                    beneficios.forEach((beneficio) => {
+                        if(beneficio.tipo == "ATIVO"){
+                            beneficio.tipo = "CESSADO"
+                        }
+                    })
+                    beneficios.forEach(beneficio => {
+                        if(beneficio.nb === data.nb_processo){
+                            tipoBeneficioProcurado = beneficio.tipo;
+                            beneficio.tipo = "ATIVO";
+                        }
+                    })
+                    
+                }
+                
+                console.log("VEIO FILTRQAOD")
+                console.log(beneficios)
 
-                console.log("documentAtivo", documentAtivo)
-                if(!documentAtivo || !documentAtivo.rmi || !documentAtivo.dib || !documentAtivo.dip){
+              
+
+                /* if(!documentAtivo || !documentAtivo.rmi || !documentAtivo.dib || !documentAtivo.dip){
                     responseWariningAndErros.falhaNaLeituraDosBeneficios += 1;
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NAS INFORMAÇÕES BENEFICIOS VÁLIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
-                }
+                } */
 
 
 
@@ -501,24 +605,35 @@ export class GetInformationFromSapienForSamirUseCase {
                     
                     deletePDF(userIdControlerPdf)
                 }
-                let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, parseInt(tarefaId),orgaoJulgador)
-                informationsForCalculeDTO.honorarioAdvocaticioPercentual = honorarioAdvocaticioPercentual;
-                informationsForCalculeDTO.honorarioAdvocaticioAte = honorarioAdvocaticioAte;
-                
-                
-                if (isValidInformationsForCalculeDTO(informationsForCalculeDTO)) {
-                    response.push(informationsForCalculeDTO);
-                    await updateEtiquetaUseCase.execute({ cookie, etiqueta: `LIDO BOT - ${etiquetaParaConcatenar}`, tarefaId })
-                } else {
-                    await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NA LEITURA DOS BENEFICIOS - ${etiquetaParaConcatenar}`, tarefaId })
+
+                try{
+                    let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, parseInt(tarefaId),orgaoJulgador)
+                    informationsForCalculeDTO.honorarioAdvocaticioPercentual = honorarioAdvocaticioPercentual;
+                    informationsForCalculeDTO.honorarioAdvocaticioAte = honorarioAdvocaticioAte;
+                        console.log(informationsForCalculeDTO)
+                    if (isValidInformationsForCalculeDTO(informationsForCalculeDTO)) {
+                        if(data.nb_processo){
+                            informationsForCalculeDTO.tipo = tipoBeneficioProcurado;
+                        }
+                        response.push(informationsForCalculeDTO);
+                        await updateEtiquetaUseCase.execute({ cookie, etiqueta: `LIDO BOT - ${etiquetaParaConcatenar}`, tarefaId })
+                    } else {
+                        await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NA LEITURA DOS BENEFICIOS - ${etiquetaParaConcatenar}`, tarefaId })
+                    }
+                }catch(e){
+                    responseWariningAndErros.falhaNaLeituraDosBeneficios += 1;
+                    continue;
                 }
+                
+                
+                
 
 
             }
            
+            
+
             if( await verificationPdfExist(userIdControlerPdf)) deletePDF(userIdControlerPdf)
-            console.log("responseWariningAndErros")
-            console.log(responseWariningAndErros)
             return await [response, responseWariningAndErros]
         } catch (error) {
             console.log(error);

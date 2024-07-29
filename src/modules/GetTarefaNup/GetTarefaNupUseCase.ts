@@ -6,7 +6,6 @@ import { RequestGetTarefaNup } from "../../sapiensOperations/resquest/RequestGet
 export class GetTarefaNupUseCase {
     constructor(private RequestGetTarefaNup:RequestGetTarefaNup){};
     async execute(data: IGetTarefaNupDTO): Promise<Array<any>> {
-  
         const getTarefa = await this.RequestGetTarefaNup.executeMerda(data.usuario_id, data.nup, data.processoJudicial ,data.qunatidadeDeProcesso);
         
         

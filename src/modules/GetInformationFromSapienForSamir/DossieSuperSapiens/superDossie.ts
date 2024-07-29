@@ -15,7 +15,7 @@ import { verificarAbreviacaoCapa } from "../helps/verificarAbreviacaoCapa";
 import { coletarCitacaoTjgo } from "../GetCitacao/coletarCitacaoTjgo";
 
 export class SuperDossie {
-    async handle(paginaDosprev: any, arrayDeDocumentos: any, nup,chaveAcesso, id, tarefaId, novaCapa, cookie, userIdControlerPdf): Promise<IInformationsForCalculeDTO> {
+    async handle(paginaDosprev: any, arrayDeDocumentos: any, nup: any ,chaveAcesso: any, id, tarefaId, novaCapa, cookie, userIdControlerPdf, data): Promise<IInformationsForCalculeDTO> {
         const xpaththInformacaoCabecalho = "/html/body/div/div[3]/p/strong/text()"
 
         const informacaoDeCabeçalho = getXPathText(paginaDosprev, xpaththInformacaoCabecalho);
@@ -32,7 +32,31 @@ export class SuperDossie {
         if (beneficios.length <= 0) {
             throw new MinhaErroPersonalizado('DOSPREV SEM BENEFICIO VALIDOS');
         }
-        beneficios = await getInformaçoesSecudariaDosBeneficiosSuperDossie(beneficios, paginaDosprev);
+        try{
+            beneficios = await getInformaçoesSecudariaDosBeneficiosSuperDossie(beneficios, paginaDosprev);
+
+        }catch(e){
+            throw new MinhaErroPersonalizado('FALHA NA LEITURA DOS BENEFICIOS');
+        }
+
+
+        let tipoBeneficioProcurado = "";
+                if(data.nb_processo){
+                    beneficios.forEach((beneficio) => {
+                        if(beneficio.tipo == "ATIVO"){
+                            beneficio.tipo = "CESSADO"
+                        }
+                    })
+                    beneficios.forEach(beneficio => {
+                        if(beneficio.nb === data.nb_processo){
+                            tipoBeneficioProcurado = beneficio.tipo;
+                            beneficio.tipo = "ATIVO";
+                        }
+                    })
+                    
+                }
+
+
 
         const xpathOrgaoJulgador = "/html/body/div/div[4]/table/tbody/tr[3]/td";
         const orgaoJulgador: string = getXPathText(paginaDosprev, xpathOrgaoJulgador);
@@ -72,12 +96,23 @@ export class SuperDossie {
                     deletePDF(userIdControlerPdf)
                 }
 
-        let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, tarefaId,orgaoJulgador)
+        try{
 
-        if(isValidInformationsForCalculeDTO(informationsForCalculeDTO)){
-            return informationsForCalculeDTO
-        }else{
+            let informationsForCalculeDTO: IInformationsForCalculeDTO = await fazerInformationsForCalculeDTO(beneficios, numeroDoProcesso, dataAjuizamento, nome, cpf, urlProcesso, citacao, tarefaId,orgaoJulgador)
+
+            if(isValidInformationsForCalculeDTO(informationsForCalculeDTO)){
+                if(data.nb_processo){
+                    informationsForCalculeDTO.tipo = tipoBeneficioProcurado;
+                }
+                return informationsForCalculeDTO
+            }else{
+                throw new MinhaErroPersonalizado('FALHA NA LEITURA DOS BENEFICIOS');
+            }
+
+        }catch(e){
+            console.log(e)
             throw new MinhaErroPersonalizado('FALHA NA LEITURA DOS BENEFICIOS');
+
         }
 
     }

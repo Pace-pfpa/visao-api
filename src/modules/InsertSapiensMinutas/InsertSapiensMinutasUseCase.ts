@@ -12,7 +12,8 @@ import { getTarefaUseCaseNup } from '../GetTarefaNup';
 export class InsertSapiensMinutasUseCase {
 
     async execute(data: IInserirMemoriaCalculoDTO): Promise<any> {
- 
+        console.log("CHEGOU MINUTA")
+        console.log(data.minutas[0].conteudo)
         const cookie = await loginUseCase.execute(data.login);
         const usuario = (await getUsuarioUseCase.execute(cookie));
         const usuario_id = `${usuario[0].id}`;
