@@ -39,6 +39,7 @@ import { coletarCitacaoTjgo } from './GetCitacao/coletarCitacaoTjgo';
 import axios from 'axios';
 import xml2js from 'xml2js';
 import fs from 'fs';
+import { verificarBeneficioInformacoesIniciais } from './helps/verificarBeneficioInformacoesIniciais';
 
 
 export class GetInformationFromSapienForSamirUseCase {
@@ -517,7 +518,13 @@ export class GetInformationFromSapienForSamirUseCase {
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV SEM BENEFICIOS VALIDOS - ${etiquetaParaConcatenar}`, tarefaId }))
                     continue
                 }
-                
+
+                if(!verificarBeneficioInformacoesIniciais(beneficios)){
+                    responseWariningAndErros.falhaNaLeituraDosBeneficios += 1;
+                    continue;
+                }
+
+
                 try{
                     beneficios = await getInformaçoesSecudariaDosBeneficios(beneficios, parginaDosPrevFormatada)
                 }catch(e){
@@ -525,6 +532,8 @@ export class GetInformationFromSapienForSamirUseCase {
                     continue;
                 }
 
+                console.log("BENEFICIOS")
+                console.log(beneficios)
                
                 //const documentAtivo = beneficios.find(beneficio => beneficio.tipo === "ATIVO")
                 
@@ -618,7 +627,12 @@ export class GetInformationFromSapienForSamirUseCase {
                         response.push(informationsForCalculeDTO);
                         await updateEtiquetaUseCase.execute({ cookie, etiqueta: `LIDO BOT - ${etiquetaParaConcatenar}`, tarefaId })
                     } else {
-                        await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NA LEITURA DOS BENEFICIOS - ${etiquetaParaConcatenar}`, tarefaId })
+                        console.log("DADOS FINAIS")
+                        console.log(informationsForCalculeDTO)
+                        responseWariningAndErros.falhaNaLeituraDosBeneficios += 1;
+                        continue;
+                        
+                        //await updateEtiquetaUseCase.execute({ cookie, etiqueta: `FALHA NA LEITURA DOS BENEFICIOS - ${etiquetaParaConcatenar}`, tarefaId })
                     }
                 }catch(e){
                     responseWariningAndErros.falhaNaLeituraDosBeneficios += 1;
