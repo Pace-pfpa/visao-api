@@ -107,7 +107,7 @@ export async function verificarDossieMaisAtual(cpf: string, cookie:string ,norma
                                 console.log("por aqu porr")
                             if(cpf.trim() == CorrigirCpfComZeros(cpfDosprev.trim())){
                                 console.log("retornou")
-                                return [normalDossie[i], 1]
+                                return [normalDossie[i], 0]
                             }    
                         } else if(!objetoDosprevSuper && objetoDosprevNormal){
 
@@ -123,7 +123,7 @@ export async function verificarDossieMaisAtual(cpf: string, cookie:string ,norma
                             if(!cpfDosprev) return new Error("cpf com falha na pesquisa dosprev")
             
                             if(cpf.trim() == CorrigirCpfComZeros(cpfDosprev.trim())){
-                                return [superDossie[i], 0]
+                                return [superDossie[i], 1]
                             }    
 
 
@@ -206,7 +206,7 @@ export async function verificarDossieMaisAtual(cpf: string, cookie:string ,norma
                  if(!cpfDosprev) return new Error("cpf com falha na pesquisa dosprev")
      
                  if(cpf.trim() == CorrigirCpfComZeros(cpfDosprev.trim())){
-                     return [normalDossie[i], 1]
+                     return [normalDossie[i], 0]
                  }    
      
      
@@ -239,7 +239,7 @@ export async function verificarDossieMaisAtual(cpf: string, cookie:string ,norma
                      if(!cpfDosprev) return new Error("cpf com falha na pesquisa dosprev")
      
                      if(cpf.trim() == CorrigirCpfComZeros(cpfDosprev.trim())){
-                         return [superDossie[i], 0]
+                         return [superDossie[i], 1]
                      }    
 
              }
