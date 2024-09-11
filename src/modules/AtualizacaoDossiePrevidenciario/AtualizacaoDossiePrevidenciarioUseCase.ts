@@ -28,10 +28,15 @@ export class AtualizacaoDossiePrevidenciarioUseCase {
             console.log("data.etiqueta", data.etiqueta, "usuario_id", usuario_id);
             const qunatidadeDeProcesso = 50;
             var tarefas: any[]
+            const tarefasProcessadas = new Set<number>();
             do {
                 tarefas = await getTarefaUseCase.execute({ cookie, usuario_id, etiqueta: data.etiqueta, qunatidadeDeProcesso })
                 let contadorFor = 0;
                 for (const tarefa of tarefas) {
+                    if (tarefasProcessadas.has(tarefa.id)) {
+                        continue;
+                    }
+                    tarefasProcessadas.add(tarefa.id);
                     const etiquetaParaConcatenar = tarefas[contadorFor].postIt
                     var pessoaId: number;
                     for (let j = 0; j < tarefa.pasta.interessados.length; j++) {

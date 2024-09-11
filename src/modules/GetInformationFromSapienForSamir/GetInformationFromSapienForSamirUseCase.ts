@@ -577,7 +577,7 @@ export class GetInformationFromSapienForSamirUseCase {
 
                 const xpathNome = "/html/body/div/div[1]/table/tbody/tr[6]/td[1]"
                 const nome: string = getXPathText(parginaDosPrevFormatada, xpathNome);
-
+''
                 const xpathCpf = "/html/body/div/div[1]/table/tbody/tr[7]/td"
                 const cpf: string = getXPathText(parginaDosPrevFormatada, xpathCpf);
 
@@ -623,7 +623,7 @@ export class GetInformationFromSapienForSamirUseCase {
                     if (isValidInformationsForCalculeDTO(informationsForCalculeDTO)) {
                         if(data.nb_processo){
                             informationsForCalculeDTO.tipo = tipoBeneficioProcurado;
-                        }
+                        }''
                         response.push(informationsForCalculeDTO);
                         await updateEtiquetaUseCase.execute({ cookie, etiqueta: `LIDO BOT - ${etiquetaParaConcatenar}`, tarefaId })
                     } else {
