@@ -84,10 +84,11 @@ routerGetInformationsForSamir.post("/getInformationFromSapienForSamir", async (r
  */
 
 
+/** 
 routerGetInformationsForSamir.post("/atualizaoDossiePrevidenciario", async (req, res) => {
     return atualizacaoDossiePrevidenciarioController.handle(req, res);
 })
-
+*/
 
 
 /**
