@@ -7,6 +7,7 @@ import { createDocumentoUseCase } from '../CreateDocumento';
 import { IInserirMemoriaCalculoDTO } from '../../DTO/InserirMemoriaCalculoDTO';
 import { updateEtiquetaUseCase } from '../UpdateEtiqueta';
 import { getTarefaUseCaseNup } from '../GetTarefaNup';
+import { IMinutasDTO } from '../../DTO/MinutaDTO';
 
 
 export class InsertSapiensMinutasUseCase {
@@ -19,20 +20,23 @@ export class InsertSapiensMinutasUseCase {
         const usuario_id = `${usuario[0].id}`;
        
         const usuario_nome = `${usuario[0].nome}`;
-        var tidNumber = 3;
+        let tidNumber = 3;
         const minutas = data.minutas;
         let response: Array<any> = [];
+
+        let tarefasProcessadas: Set<string> = new Set();
+
         for(let k= 0; k<data.minutas.length; k++){
             const tarefas = await getTarefaUseCaseNup.execute({ cookie, usuario_id, nup: data.minutas[k].nup})
             
 
 
-            for (var i = 0; i < tarefas.length; i++) {
+            for (let i = 0; i < tarefas.length; i++) {
 /*                 console.log("i tarefas anexar: " + i);
                 console.log(tarefas[i]) */
-                var processo: string;
-                var processos: any;
-                let processoAFazerPelaNup;
+                let processo: string | undefined;
+                let processos: any;
+                let processoAFazerPelaNup: boolean;
                 let processoAfazer;
                 for (let j = 0; j < tarefas[i].pasta.interessados.length ; j++) {
                     if((tarefas[i].pasta.interessados[j].pessoa.nome !== "MINIST�RIO P�BLICO fEDERAL (PROCURADORIA)" && 
@@ -52,6 +56,11 @@ export class InsertSapiensMinutasUseCase {
                 const tid = `${tidNumber}`;
                 //tarefas[i].postIt = "MEMÓRIA DE CALCULO INSERIDA NA MINUTA";
                 tarefas[i].tid = tidNumber;
+
+                if (tarefasProcessadas.has(tarefa_id)) {
+                    console.log(`Tarefa já processada: ${tarefa_id}`);
+                    continue;
+                }
                 
                 processoAfazer = minutas.find(minuta => minuta.numeroprocesso == processo);
                 processoAFazerPelaNup = processos.pasta.NUP == data.minutas[k].nup;
@@ -79,6 +88,8 @@ export class InsertSapiensMinutasUseCase {
                     (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `MEMORIA ANEXADA - ${tarefas[i].postIt}`, tarefaId: parseInt(tarefa_id) }));
                     console.log(tarefas[i])
                     tidNumber++;
+
+                    tarefasProcessadas.add(tarefa_id);
                 }
 
                 /* if (i == tarefas.length - 1) {
