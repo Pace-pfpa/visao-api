@@ -27,5 +27,4 @@ export async function verificarCapaTrue(capaToVerivy: string){
 
     ///html/body/div/div[5]/table/tbody/tr[10]/td[1]
 
-
 }

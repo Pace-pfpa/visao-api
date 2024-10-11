@@ -33,7 +33,7 @@ import { coletarCitacaoTjam } from './GetCitacao/coletarCitacaoTjam';
 import jwt from 'jsonwebtoken'
 import { id } from 'date-fns/locale';
 import { verificationPdfExist } from './helps/verificationPdfExist';
-import { verificarDossieMaisAtual } from './helps/verificarDossieMaisAtual';
+import { verificarDossieMaisAtual, verificarDossieMaisAtualRefactor } from './helps/verificarDossieMaisAtual';
 import { CorrigirCpfComZeros } from './helps/CorrigirCpfComZeros';
 import { coletarCitacaoTjgo } from './GetCitacao/coletarCitacaoTjgo';
 import axios from 'axios';
@@ -107,7 +107,8 @@ export class GetInformationFromSapienForSamirUseCase {
                 
                 const tinfoClasseExist = await verificarCapaTrue(tcapaFormatada)
 
-                
+                console.log("VERIFICAR tinfoclass")
+                console.log(tinfoClasseExist)
                
 
                 if(tinfoClasseExist){
@@ -180,29 +181,22 @@ export class GetInformationFromSapienForSamirUseCase {
                     const novaNup = getXPathText(capaFormatada, xpathNovaNup)
                     const novoObjectGetArvoreDocumento: IGetArvoreDocumentoDTO = { nup: novaNup, chave: tarefas[i].pasta.chaveAcesso, cookie, tarefa_id: tarefas[i].id }
                     try { 
-                        const novaNupTratada = novaNup.split("(")[0].trim().replace(/[-/.]/g, "")
-                        novoObjectGetArvoreDocumento.nup = novaNupTratada
-                        arrayDeDocumentos = (await getArvoreDocumentoUseCase.execute(novoObjectGetArvoreDocumento)).reverse();
-                        objectDosPrev = arrayDeDocumentos.filter(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV" && Documento.documentoJuntado.origemDados.fonteDados === "SAT_INSS");
-                        
-                       /*  var objectDosPrev2 = arrayDeDocumentos.find(Documento => {
-                            const movimento = (Documento.movimento).split(".");
-                            return movimento[0] == "JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF";
-                        });
 
 
-                        if(objectDosPrev == undefined && objectDosPrev2 == undefined){
-                            (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV NÃO ENCONTRADO - ${etiquetaParaConcatenar}`, tarefaId }));
-                            continue
-                        }else if(objectDosPrev2 != undefined && objectDosPrev == undefined){
-                            objectDosPrev = objectDosPrev2;
-                            superDosprevExist = true;
-                        }else if(objectDosPrev != undefined &&  objectDosPrev2 != undefined){
-                            if(objectDosPrev.numeracaoSequencial < objectDosPrev2.numeracaoSequencial){
-                                objectDosPrev = objectDosPrev2;
-                                superDosprevExist = true;
-                            }
-                        } */
+
+                        objectDosPrev = arrayDeDocumentos.filter(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV" && (Documento.documentoJuntado.origemDados.fonteDados === "SAT_INSS" || Documento.documentoJuntado.origemDados.fonteDados === "PREVIDENCIARIO"));
+
+                        let dosprevEncontrado = objectDosPrev.length > 0;
+                        console.log("LIMIUVIS")
+                        console.log(dosprevEncontrado)
+
+                        if (!dosprevEncontrado) {
+                            const novaNupTratada = novaNup.split("(")[0].trim().replace(/[-/.]/g, "")
+                            novoObjectGetArvoreDocumento.nup = novaNupTratada
+                            arrayDeDocumentos = (await getArvoreDocumentoUseCase.execute(novoObjectGetArvoreDocumento)).reverse();
+                            objectDosPrev = arrayDeDocumentos.filter(Documento => Documento.documentoJuntado.tipoDocumento.sigla == "DOSPREV" && Documento.documentoJuntado.origemDados.fonteDados === "SAT_INSS");
+                        }
+
 
 
                         if(objectDosPrev.length > 0){
@@ -394,7 +388,7 @@ export class GetInformationFromSapienForSamirUseCase {
                 
                 if(dossieNormal && !superDosprevExist){
                     
-                    const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, null);
+                    const dossieIsvalid = await verificarDossieMaisAtualRefactor(cpfCapa, cookie, objectDosPrev, null);
                     
 
                     if(dossieIsvalid instanceof Error){
@@ -411,7 +405,7 @@ export class GetInformationFromSapienForSamirUseCase {
                 }else if(!dossieNormal && superDosprevExist){
                     
                     console.log("foi auqi2")
-                    const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, null, objectDosPrev2);
+                    const dossieIsvalid = await verificarDossieMaisAtualRefactor(cpfCapa, cookie, null, objectDosPrev2);
                     
                     if(dossieIsvalid instanceof Error){
                         responseWariningAndErros.dosprevComFalhaNaPesquisa += 1;
@@ -422,7 +416,7 @@ export class GetInformationFromSapienForSamirUseCase {
                         objectDosPrev = dossieIsvalid[0]
                     }
                 }else{
-                    const dossieIsvalid = await verificarDossieMaisAtual(cpfCapa, cookie, objectDosPrev, objectDosPrev2);
+                    const dossieIsvalid = await verificarDossieMaisAtualRefactor(cpfCapa, cookie, objectDosPrev, objectDosPrev2);
                     if(dossieIsvalid instanceof Error){
                         responseWariningAndErros.dosprevComFalhaNaPesquisa += 1;
                         (await updateEtiquetaUseCase.execute({ cookie, etiqueta: `DOSPREV COM FALHA NA PESQUISA - ${etiquetaParaConcatenar}`, tarefaId }))
